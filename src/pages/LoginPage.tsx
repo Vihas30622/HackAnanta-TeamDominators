@@ -3,11 +3,19 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 
 const LoginPage = () => {
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+  if (isAuthenticated && user) {
+    if (user.role === 'super_admin') {
+      return <Navigate to="/admin/users" replace />;
+    } else if (user.role === 'food_admin') {
+      return <Navigate to="/admin/food" replace />;
+    } else if (user.role === 'resource_admin') {
+      return <Navigate to="/admin/resources" replace />;
+    } else {
+      return <Navigate to="/" replace />;
+    }
   }
 
   const handleLogin = async () => {

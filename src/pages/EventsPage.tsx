@@ -1,7 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { db } from '@/lib/firebase';
+import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { Plus, Edit } from 'lucide-react';
+
+interface EventItem {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  time: string;
+  location: string;
+  image?: string;
+  category?: string;
+}
 
 const EventsPage = () => {
   const [activeTab, setActiveTab] = useState('All');
+  const [events, setEvents] = useState<EventItem[]>([]);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const isAdmin = user?.role === 'super_admin';
 
   const tabs = [
     { id: 'All', icon: 'star', label: 'All Events' },
@@ -10,45 +31,24 @@ const EventsPage = () => {
     { id: 'Sports', icon: 'emoji_events', label: 'Sports' },
   ];
 
-  const events = [
-    {
-      id: 1,
-      title: 'Campus Beach Cleanup',
-      category: 'Volunteering',
-      date: '14',
-      day: 'Sat',
-      time: '9:00 AM',
-      location: 'North Beach',
-      badge: '+5 Karma',
-      badgeColor: 'text-green-600 bg-green-100',
-      image: 'https://images.unsplash.com/photo-1618477461853-5f8dd68aa395?q=80&w=200&auto=format&fit=crop',
-      action: 'Join'
-    },
-    {
-      id: 2,
-      title: 'Coding Bootcamp Intro',
-      category: 'Workshop',
-      date: '17',
-      day: 'Tue',
-      time: '5:00 PM',
-      location: 'Lab 304',
-      badge: 'Free Pizza',
-      badgeColor: 'text-orange-600 bg-orange-100',
-      image: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=200&auto=format&fit=crop',
-      action: 'Register'
-    },
-    {
-      id: 3,
-      title: 'Friday Night Mixer',
-      category: 'Social',
-      date: '20',
-      day: 'Fri',
-      time: '8:00 PM',
-      location: 'Student Union',
-      image: 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?q=80&w=200&auto=format&fit=crop',
-      action: 'RSVP'
-    }
-  ];
+  useEffect(() => {
+    if (!db) return;
+
+    const q = query(collection(db, 'events')); // Add orderBy if needed later
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const items = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as EventItem[];
+      setEvents(items);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const filteredEvents = activeTab === 'All'
+    ? events
+    : events.filter(e => e.category === activeTab);
 
   return (
     <div className="flex flex-col h-full fade-in pb-28">
@@ -64,15 +64,26 @@ const EventsPage = () => {
             <h1 className="text-primary text-lg font-bold leading-none">What's Happening</h1>
           </div>
         </div>
-        <button className="flex items-center justify-center size-10 rounded-full bg-white/50 hover:bg-white transition-colors text-primary relative">
-          <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>notifications</span>
-          <span className="absolute top-2 right-2 size-2 bg-red-500 rounded-full border border-white"></span>
-        </button>
+
+        <div className="flex gap-2">
+          {isAdmin && (
+            <button
+              onClick={() => navigate('/admin/events')}
+              className="flex items-center justify-center size-10 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors text-primary"
+            >
+              <Edit className="w-5 h-5" />
+            </button>
+          )}
+          <button className="flex items-center justify-center size-10 rounded-full bg-white/50 hover:bg-white transition-colors text-primary relative">
+            <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>notifications</span>
+            <span className="absolute top-2 right-2 size-2 bg-red-500 rounded-full border border-white"></span>
+          </button>
+        </div>
       </header>
 
       {/* Greeting */}
       <div className="px-5 pt-6 pb-2">
-        <h2 className="text-[#101419] text-[28px] font-bold leading-tight">Hello, Alex! 👋</h2>
+        <h2 className="text-[#101419] text-[28px] font-bold leading-tight">Hello, {user?.name?.split(' ')[0] || 'Student'}! 👋</h2>
         <p className="text-secondary font-medium">Ready to explore campus life?</p>
       </div>
 
@@ -83,11 +94,11 @@ const EventsPage = () => {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full pl-4 pr-5 transition-transform active:scale-95 ${activeTab === tab.id
-                ? 'bg-primary text-white shadow-lg shadow-primary/20 font-bold'
-                : 'glass-panel text-primary hover:bg-white/80 font-semibold'
+              ? 'bg-primary text-white shadow-lg shadow-primary/20 font-bold'
+              : 'glass-panel text-primary hover:bg-white/80 font-semibold'
               }`}
           >
-            <span className={`material-symbols-outlined ${activeTab === tab.id ? 'text-white' : 'text-primary'}`} style={{ fontSize: '20px' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
               {tab.icon}
             </span>
             <span>{tab.label}</span>
@@ -95,7 +106,7 @@ const EventsPage = () => {
         ))}
       </div>
 
-      {/* Hero Section (Featured) */}
+      {/* Hero Section (Featured) - Static for now or make fetchable */}
       <div className="px-5 mt-2">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-primary text-xl font-bold tracking-tight">Featured Event</h3>
@@ -112,23 +123,11 @@ const EventsPage = () => {
             <span className="text-xl font-extrabold text-primary leading-none">12</span>
           </div>
           <div className="absolute bottom-0 left-0 w-full p-6">
-            <div className="flex gap-2 mb-2">
-              <span className="inline-flex items-center rounded-md bg-accent/90 px-2 py-1 text-xs font-bold text-[#104a6b] backdrop-blur-sm">Social</span>
-              <span className="inline-flex items-center rounded-md bg-black/40 px-2 py-1 text-xs font-bold text-white backdrop-blur-sm">
-                <span className="material-symbols-outlined text-[14px] mr-1">location_on</span>
-                Quad
-              </span>
-            </div>
             <h2 className="text-white text-2xl font-bold leading-tight mb-2 drop-shadow-md">Spring Music Festival</h2>
             <p className="text-white/90 text-sm mb-4 line-clamp-2">Join 500+ students this weekend for live bands, food trucks, and good vibes!</p>
-            <div className="flex gap-3">
-              <button className="flex-1 bg-primary hover:bg-[#2a5d94] text-white font-bold h-11 rounded-xl shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2 transition-colors">
-                RSVP Now
-              </button>
-              <button className="size-11 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/30 transition-colors">
-                <span className="material-symbols-outlined">favorite</span>
-              </button>
-            </div>
+            <button className="flex-1 bg-primary hover:bg-[#2a5d94] text-white font-bold h-11 rounded-xl shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2 transition-colors w-full">
+              RSVP Now
+            </button>
           </div>
         </div>
       </div>
@@ -136,40 +135,50 @@ const EventsPage = () => {
       {/* Vertical List Section */}
       <div className="px-5 mt-8 space-y-4">
         <h3 className="text-primary text-xl font-bold tracking-tight">Upcoming Opportunities</h3>
-        {events.map((event) => (
-          <div key={event.id} className="glass-panel p-3 rounded-[24px] flex gap-4 items-center shadow-sm hover:scale-[1.01] transition-transform cursor-pointer">
-            <div className="relative shrink-0">
-              <div className="w-24 h-24 rounded-2xl bg-cover bg-center" style={{ backgroundImage: `url('${event.image}')` }}></div>
-              <div className="absolute -bottom-2 -right-2 bg-white rounded-xl px-2 py-1 shadow-sm border border-gray-100 flex flex-col items-center min-w-[40px]">
-                <span className="text-[10px] font-bold text-secondary uppercase">{event.day}</span>
-                <span className="text-sm font-extrabold text-[#101419] leading-none">{event.date}</span>
+
+        {filteredEvents.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">No events found.</div>
+        ) : (
+          filteredEvents.map((event) => (
+            <div key={event.id} className="glass-panel p-3 rounded-[24px] flex gap-4 items-center shadow-sm hover:scale-[1.01] transition-transform cursor-pointer">
+              <div className="relative shrink-0">
+                <div className="w-24 h-24 rounded-2xl bg-cover bg-center bg-gray-200" style={{ backgroundImage: event.image ? `url('${event.image}')` : undefined }}>
+                  {!event.image && <span className="flex items-center justify-center h-full text-xs text-gray-400">No Img</span>}
+                </div>
+                <div className="absolute -bottom-2 -right-2 bg-white rounded-xl px-2 py-1 shadow-sm border border-gray-100 flex flex-col items-center min-w-[40px]">
+                  <span className="text-[10px] font-bold text-secondary uppercase">Event</span>
+                  <span className="text-sm font-extrabold text-[#101419] leading-none">{event.date.split('-')[2] || '??'}</span>
+                </div>
+              </div>
+              <div className="flex flex-col flex-1 py-1 min-w-0">
+                <div className="flex justify-between items-start">
+                  <span className="text-xs font-bold text-secondary mb-1">{event.category || 'General'}</span>
+                </div>
+                <h4 className="text-[#101419] font-bold text-lg leading-tight truncate">{event.title}</h4>
+                <p className="text-gray-500 text-xs mt-1 flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[14px]">schedule</span> {event.time} • {event.location}
+                </p>
+                <div className="mt-2 flex justify-end items-center">
+                  <button className="text-primary text-sm font-bold bg-primary/10 px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-colors">
+                    View
+                  </button>
+                </div>
               </div>
             </div>
-            <div className="flex flex-col flex-1 py-1 min-w-0">
-              <div className="flex justify-between items-start">
-                <span className="text-xs font-bold text-secondary mb-1">{event.category}</span>
-                {event.badge && (
-                  <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${event.badgeColor}`}>{event.badge}</span>
-                )}
-              </div>
-              <h4 className="text-[#101419] font-bold text-lg leading-tight truncate">{event.title}</h4>
-              <p className="text-gray-500 text-xs mt-1 flex items-center gap-1">
-                <span className="material-symbols-outlined text-[14px]">schedule</span> {event.time} • {event.location}
-              </p>
-              <div className="mt-2 flex justify-end items-center">
-                <button className="text-primary text-sm font-bold bg-primary/10 px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-colors">
-                  {event.action}
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
-      {/* Floating Action Button */}
-      <button className="fixed bottom-24 right-5 z-40 size-14 bg-accent rounded-full shadow-[0_4px_20px_rgba(161,227,249,0.5)] flex items-center justify-center text-[#104a6b] hover:scale-105 active:scale-95 transition-transform">
-        <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>add</span>
-      </button>
+      {/* Floating Action Button (Admin only? Or for students to suggest?) */}
+      {/* Keeping consistent with request to be editable by super_admin */}
+      {isAdmin && (
+        <button
+          onClick={() => navigate('/admin/events')}
+          className="fixed bottom-24 right-5 z-40 size-14 bg-accent rounded-full shadow-[0_4px_20px_rgba(161,227,249,0.5)] flex items-center justify-center text-[#104a6b] hover:scale-105 active:scale-95 transition-transform"
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>add</span>
+        </button>
+      )}
     </div>
   );
 };

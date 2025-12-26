@@ -206,7 +206,7 @@ const ResourceAdminPage: React.FC = () => {
           {[
             { key: 'all', label: 'All' },
             { key: 'room', label: 'Rooms', icon: Building2 },
-            { key: 'equipment', label: 'Equipment', icon: Dumbbell },
+            { key: 'equipment', label: 'Sports Equipment', icon: Dumbbell },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -232,7 +232,7 @@ const ResourceAdminPage: React.FC = () => {
           </div>
           <div className="flex-1 glass-card p-3 text-center">
             <p className="text-2xl font-bold text-foreground">{equipmentCount}</p>
-            <p className="text-xs text-muted-foreground">Equipment</p>
+            <p className="text-xs text-muted-foreground">Sports Equipment</p>
           </div>
           <div className="flex-1 glass-card p-3 text-center">
             <p className="text-2xl font-bold text-success">{availableCount}</p>
@@ -373,7 +373,7 @@ const ResourceAdminPage: React.FC = () => {
                         }`}
                     >
                       <Dumbbell className="w-4 h-4" />
-                      Equipment
+                      Sports Equipment
                     </button>
                   </div>
                 </div>

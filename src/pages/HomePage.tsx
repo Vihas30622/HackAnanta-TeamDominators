@@ -1,10 +1,25 @@
+
+import React, { useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+import { db } from "@/lib/firebase";
+import { collection, query, limit, onSnapshot } from "firebase/firestore";
 
 const HomePage = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const [recentEvents, setRecentEvents] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!db) return;
+    const q = query(collection(db, 'events'), limit(3));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setRecentEvents(items);
+    });
+    return () => unsubscribe();
+  }, []);
+
   const [sosClicks, setSosClicks] = useState(0);
   const [isSosActive, setIsSosActive] = useState(false);
   const [countdown, setCountdown] = useState(5);
@@ -106,9 +121,9 @@ const HomePage = () => {
             onClick={handleSosClick}
             className="relative w-36 h-36 rounded-full bg-gradient-to-br from-white to-[#ebf4f5] shadow-[0_10px_40px_rgba(54,116,181,0.25)] flex flex-col items-center justify-center z-10 active:scale-95 transition-all duration-300 border-4 border-white/60 group overflow-hidden"
           >
-            <div className={`absolute inset-0 transition-opacity duration-200 ${sosClicks > 0 ? 'bg-red-500/10 opacity-100' : 'bg-primary/5 opacity-0 group-hover:opacity-100'}`}></div>
-            <span className={`material-symbols-outlined text-[48px] mb-1 material-symbols-filled drop-shadow-sm transition-colors ${sosClicks > 0 ? 'text-red-500' : 'text-primary'}`}>emergency_share</span>
-            <span className={`font-black text-xl tracking-wider transition-colors ${sosClicks > 0 ? 'text-red-500' : 'text-primary'}`}>SOS</span>
+            <div className={`absolute inset - 0 transition - opacity duration - 200 ${sosClicks > 0 ? 'bg-red-500/10 opacity-100' : 'bg-primary/5 opacity-0 group-hover:opacity-100'} `}></div>
+            <span className={`material - symbols - outlined text - [48px] mb - 1 material - symbols - filled drop - shadow - sm transition - colors ${sosClicks > 0 ? 'text-red-500' : 'text-primary'} `}>emergency_share</span>
+            <span className={`font - black text - xl tracking - wider transition - colors ${sosClicks > 0 ? 'text-red-500' : 'text-primary'} `}>SOS</span>
           </button>
 
           {/* Pulsing Effect behind button */}
@@ -137,28 +152,52 @@ const HomePage = () => {
         ))}
       </div>
 
+      {/* Admin Quick Access */}
+      {(user?.role === 'super_admin' || user?.role === 'food_admin' || user?.role === 'resource_admin') && (
+        <div className="px-6 mb-4">
+          <button
+            onClick={() => {
+              if (user.role === 'super_admin') navigate('/admin/users');
+              else if (user.role === 'food_admin') navigate('/admin/food');
+              else if (user.role === 'resource_admin') navigate('/admin/resources');
+            }}
+            className="w-full h-12 rounded-xl bg-primary text-white font-bold flex items-center justify-center gap-2 active:scale-95 transition-transform"
+          >
+            <span className="material-symbols-outlined">admin_panel_settings</span>
+            Open Admin Dashboard
+          </button>
+        </div>
+      )}
+
       {/* Recent Updates (Placeholder for "Something Else") */}
-      <div className="px-6 mt-4 pb-24">
-        <h3 className="text-lg font-bold text-foreground mb-4">Recent Updates</h3>
+      <div className="px-5 mt-6">
+        <h3 className="text-primary text-lg font-bold mb-3">Recent Updates</h3>
         <div className="space-y-3">
-          <div className="glass-card p-4 rounded-2xl flex gap-4 items-center">
-            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-              <span className="material-symbols-outlined text-[20px]">info</span>
+          {recentEvents.length > 0 ? (
+            recentEvents.map(event => (
+              <div
+                key={event.id}
+                onClick={() => navigate('/events')}
+                className="glass-panel p-4 rounded-2xl flex gap-4 items-center shadow-sm active:scale-[0.98] transition-transform cursor-pointer"
+              >
+                <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0 overflow-hidden">
+                  {event.image ? (
+                    <img src={event.image} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="material-symbols-outlined">event</span>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-bold text-[#101419] text-sm truncate">{event.title}</h4>
+                  <p className="text-secondary text-xs truncate">{event.description || event.date + ' @ ' + event.location}</p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-4 bg-white/50 rounded-2xl">
+              <p className="text-sm text-muted-foreground">No recent updates.</p>
             </div>
-            <div>
-              <h4 className="font-semibold text-sm">Exam Schedule Released</h4>
-              <p className="text-xs text-muted-foreground">Check your dashboard for details</p>
-            </div>
-          </div>
-          <div className="glass-card p-4 rounded-2xl flex gap-4 items-center">
-            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-              <span className="material-symbols-outlined text-[20px]">event</span>
-            </div>
-            <div>
-              <h4 className="font-semibold text-sm">Tech Fest Registration</h4>
-              <p className="text-xs text-muted-foreground">Open until Friday</p>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

@@ -25,8 +25,11 @@ import SettingsPage from "@/pages/SettingsPage";
 import NotificationsPage from "@/pages/NotificationsPage";
 import FoodAdminPage from "@/pages/admin/FoodAdminPage";
 import ResourceAdminPage from "@/pages/admin/ResourceAdminPage";
+import EventsAdminPage from "@/pages/admin/EventsAdminPage";
 import SuperAdminPage from "@/pages/admin/SuperAdminPage";
 import RoleConfigPage from "@/pages/admin/RoleConfigPage";
+import PaymentPage from "@/pages/PaymentPage";
+import OrderSuccessPage from "@/pages/OrderSuccessPage";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -256,10 +259,36 @@ const AppRoutes: React.FC = () => {
         }
       />
       <Route
+        path="/admin/events"
+        element={
+          <AdminRoute allowedRoles={['super_admin']}>
+            <AppLayout>
+              <EventsAdminPage />
+            </AppLayout>
+          </AdminRoute>
+        }
+      />
+      <Route
         path="/admin-setup"
         element={
           <ProtectedRoute>
             <RoleConfigPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/payment"
+        element={
+          <ProtectedRoute>
+            <PaymentPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/order-success"
+        element={
+          <ProtectedRoute>
+            <OrderSuccessPage />
           </ProtectedRoute>
         }
       />
