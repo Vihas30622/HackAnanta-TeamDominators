@@ -1,52 +1,29 @@
+```
 import React from 'react';
-import { motion } from 'framer-motion';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Shield, Sparkles, AlertCircle } from 'lucide-react';
+import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Navigate } from "react-router-dom";
 
-const LoginPage: React.FC = () => {
-  const { login, isLoading, isConfigured } = useAuth();
+const LoginPage = () => {
+  const { login, isAuthenticated } = useAuth();
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  const features = [
-    { icon: Shield, text: 'Emergency SOS with live location' },
-    { icon: Sparkles, text: 'AI-powered mental health support' },
-  ];
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+
+  const handleLogin = async () => {
+    try {
+      setIsLoggingIn(true);
+      await login();
+    } catch (error) {
+      console.error("Login failed", error);
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      {/* Hero Section */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="w-20 h-20 rounded-2xl gradient-primary flex items-center justify-center mb-6 shadow-lg"
-        >
-          <span className="text-4xl">🎓</span>
-        </motion.div>
-        
-        <motion.h1
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="text-3xl font-bold text-foreground text-center"
-        >
-          CampusOS
-        </motion.h1>
-        
-        <motion.p
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="text-muted-foreground text-center mt-2 max-w-xs"
-        >
-          Your digital campus operating system. Safety, resources, and community in one app.
-        </motion.p>
-        
-        {/* Features */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.3 }}
           className="mt-8 space-y-3"
         >

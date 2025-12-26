@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Campus OS - Safety Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3673b5", // Closest match to #3674B5
+                        "campus-secondary": "#578FCA",
+                        "campus-accent": "#A1E3F9",
+                        "campus-bg": "#D1F8EF",
+                        "background-light": "#D1F8EF", // Overriding default light bg for this specific theme request
+                        "background-dark": "#13191f",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "2xl": "2rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar hiding for clean UI */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Glassmorphism utilities that might not be fully covered by standard tailwind utility combinations in all contexts */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(54, 116, 181, 0.15);
+        }
+        
+        .glass-button {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-campus-bg text-[#101419] font-display min-h-screen relative overflow-x-hidden selection:bg-campus-accent selection:text-primary">
+<!-- Decorative background elements for glassmorphism depth -->
+<div class="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#A1E3F9] rounded-full mix-blend-multiply filter blur-[100px] opacity-60 z-0"></div>
+<div class="fixed bottom-[-10%] right-[-10%] w-[400px] h-[400px] bg-[#578FCA] rounded-full mix-blend-multiply filter blur-[80px] opacity-40 z-0"></div>
+<div class="relative z-10 flex flex-col h-full min-h-screen pb-24">
+<!-- Top App Bar -->
+<header class="sticky top-0 z-50 px-4 py-4">
+<div class="glass-panel rounded-full px-4 py-2 flex items-center justify-between">
+<button class="flex items-center justify-center size-10 rounded-full hover:bg-white/50 transition-colors text-[#101419]">
+<span class="material-symbols-outlined text-2xl">arrow_back_ios_new</span>
+</button>
+<h1 class="text-[#101419] text-lg font-bold tracking-tight">Safety Center</h1>
+<button class="flex items-center justify-center size-10 rounded-full hover:bg-white/50 transition-colors text-[#101419]">
+<span class="material-symbols-outlined text-2xl">settings</span>
+</button>
+</div>
+</header>
+<!-- Main Content Scroll -->
+<main class="flex-1 flex flex-col px-4 space-y-6 pt-2">
+<!-- Live Location Status Card -->
+<section class="glass-panel rounded-3xl p-4 flex flex-col gap-4">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<span class="relative flex h-3 w-3">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+</span>
+<h2 class="text-sm font-bold text-gray-700 uppercase tracking-wider">Live Status</h2>
+</div>
+<span class="text-xs font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20">Visible to Security</span>
+</div>
+<div class="relative w-full aspect-[16/9] rounded-2xl overflow-hidden shadow-inner border border-white/50">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="Minimalist map showing university campus streets" data-location="University Campus" style='background-image: url("https://placeholder.pics/svg/300");'></div>
+<!-- Map User Pin Overlay -->
+<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
+<div class="size-16 rounded-full bg-primary/20 flex items-center justify-center animate-pulse">
+<div class="size-8 rounded-full bg-white border-4 border-primary shadow-lg"></div>
+</div>
+</div>
+<!-- Location Text Overlay -->
+<div class="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-sm border border-gray-200">
+<p class="text-xs font-bold text-gray-800">Near Student Union</p>
+</div>
+</div>
+</section>
+<!-- Emergency Contacts Carousel -->
+<section>
+<div class="flex justify-between items-end mb-3 px-2">
+<h3 class="text-lg font-bold text-[#101419]">Emergency Contacts</h3>
+<button class="text-primary text-sm font-semibold">Edit</button>
+</div>
+<div class="flex overflow-x-auto gap-4 py-2 px-1 no-scrollbar mask-linear-fade">
+<!-- Contact 1 -->
+<div class="flex flex-col items-center gap-2 shrink-0">
+<div class="size-16 rounded-full p-1 bg-white shadow-sm border border-white/60">
+<img class="w-full h-full rounded-full object-cover" data-alt="Avatar of Campus Security officer" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8ih_9DI3ljjAa-7rdXCcNiD-b567IW1wDHaQq6OjjkDlB-0AzxT8HPuQkRtc1MAt9H3d3Ln_bpH9vcSWulN85H8FCnw9bTIRDpHabPbagRAYT4x4-oDT2Gj0zs-E6n_6jgAwdy5w0CimLucbVWEeaemjLzaJenXaq4hdIaaGhVpPdZdrqLYQhzPZY3DmRRQu4ODqOXCMqRak8DwKVBfkJRF3BSOrX7t-qIQecp4YI50khWEpJhlqkUHuIuU_RzPBC7b_UztgBIZc"/>
+</div>
+<span class="text-xs font-bold text-gray-700">Campus<br/>Security</span>
+</div>
+<!-- Contact 2 -->
+<div class="flex flex-col items-center gap-2 shrink-0">
+<div class="size-16 rounded-full p-1 bg-white shadow-sm border border-white/60">
+<img class="w-full h-full rounded-full object-cover" data-alt="Avatar of Resident Advisor" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUIOgoM9JJQEX44wimF1lhmljZsFqqIgmfCyPj-O1dXRQO5v_iZXlsXHdBfQOX-WV9hBjWQXLyWCHAKV5WPNMAiUF4MINzXWLCMtrJ3wMWhmgZqgvotSOwdW8fr_yy-rjjm-7Rs1VbPDhjNFfUwb_9LWbdE_PRRORls_wRS2zPjrQf0UxY5GO2kxLgkTfUfef7BOUFHEBneufmKgB7MT21001A8HmA6BVAEXBdb0GbdNBh7KXwJAmdM7p_dSu6KZfKBW4tof0PWpg"/>
+</div>
+<span class="text-xs font-medium text-gray-600">RA Sarah</span>
+</div>
+<!-- Contact 3 -->
+<div class="flex flex-col items-center gap-2 shrink-0">
+<div class="size-16 rounded-full p-1 bg-white shadow-sm border border-white/60">
+<img class="w-full h-full rounded-full object-cover" data-alt="Avatar of Roommate" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCixi0th01zgoYAVTnHaMXCU3aVnMmhtr0SJeWTUoff2qT8DjSf2emhZCIr7K5FRJnMBOV51nJdQDfLZBk9mu2UIHuDdAaRxJDsDSrZkMTVVBNs0W0-TEW_P0EhS6p5peF3gqgDeIUaX3MkwB2FSTR7VW1TPjv2gJUY5610PQyfZGJy2mqp3ANDRXeapz1jr13tY8i7yCyrsKEh1GaowD3wv1GBtc6epE4pvZQSpd6xkhJMFDk_lUuZEM8nv6rrau5-vjzuiHDTF64"/>
+</div>
+<span class="text-xs font-medium text-gray-600">Mom</span>
+</div>
+<!-- Add Button -->
+<div class="flex flex-col items-center gap-2 shrink-0">
+<button class="size-16 rounded-full bg-white/40 border border-dashed border-gray-400 flex items-center justify-center text-gray-500 hover:bg-white/60 transition">
+<span class="material-symbols-outlined">add</span>
+</button>
+<span class="text-xs font-medium text-gray-500">Add</span>
+</div>
+</div>
+</section>
+<!-- Quick Action Grid -->
+<section class="grid grid-cols-2 gap-3">
+<button class="glass-button p-4 rounded-2xl flex flex-col items-center justify-center gap-3 shadow-sm hover:scale-[1.02] transition-transform active:scale-95 group">
+<div class="p-3 bg-campus-secondary/10 rounded-full text-campus-secondary group-hover:bg-campus-secondary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-3xl">phone_in_talk</span>
+</div>
+<span class="font-bold text-sm text-gray-800">Fake Call</span>
+</button>
+<button class="glass-button p-4 rounded-2xl flex flex-col items-center justify-center gap-3 shadow-sm hover:scale-[1.02] transition-transform active:scale-95 group">
+<div class="p-3 bg-campus-secondary/10 rounded-full text-campus-secondary group-hover:bg-campus-secondary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-3xl">directions_walk</span>
+</div>
+<span class="font-bold text-sm text-gray-800">Safe Walk</span>
+</button>
+<button class="glass-button p-4 rounded-2xl col-span-2 flex items-center justify-between gap-3 shadow-sm hover:scale-[1.02] transition-transform active:scale-95 group px-6">
+<div class="flex items-center gap-4">
+<div class="p-3 bg-red-50 rounded-full text-red-500 group-hover:bg-red-500 group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-3xl">report_problem</span>
+</div>
+<div class="flex flex-col items-start">
+<span class="font-bold text-base text-gray-800">Report Incident</span>
+<span class="text-xs text-gray-500">Anonymously tip campus police</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-gray-400">chevron_right</span>
+</button>
+</section>
+<!-- SOS Primary Action Area -->
+<!-- Positioning this prominently at the bottom of the scroll area, but visually distinct -->
+<section class="flex justify-center py-6 pb-8">
+<button class="relative group cursor-pointer outline-none tap-highlight-transparent w-full max-w-[320px]">
+<!-- Outer Glow Ring -->
+<div class="absolute inset-0 bg-campus-accent rounded-full blur-xl opacity-40 group-hover:opacity-60 transition-opacity duration-500"></div>
+<!-- Main Button -->
+<div class="relative w-full h-20 bg-gradient-to-r from-[#3673b5] to-[#578FCA] rounded-full flex items-center justify-between pl-3 pr-2 shadow-xl shadow-blue-500/30 overflow-hidden border border-white/20">
+<!-- Slide Indicator / Icon Area -->
+<div class="h-16 w-16 bg-white rounded-full flex items-center justify-center shadow-md z-10 group-active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined text-primary text-3xl font-bold">sos</span>
+</div>
+<!-- Text -->
+<div class="flex-1 text-center pr-4">
+<span class="text-white font-bold text-xl tracking-wide block">HOLD FOR SOS</span>
+<span class="text-blue-100 text-[10px] uppercase tracking-widest">Release to cancel</span>
+</div>
+<!-- Subtle animated sheen -->
+<div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out"></div>
+</div>
+</button>
+</section>
+</main>
+<!-- Bottom Navigation Dock -->
+<nav class="fixed bottom-6 left-4 right-4 z-50">
+<div class="glass-panel h-16 rounded-2xl flex items-center justify-around shadow-2xl px-2">
+<button class="flex flex-col items-center justify-center w-full h-full gap-1 text-gray-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl">home</span>
+<span class="text-[10px] font-medium">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center w-full h-full gap-1 text-gray-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl">school</span>
+<span class="text-[10px] font-medium">Campus</span>
+</button>
+<!-- Active State Item -->
+<div class="relative flex flex-col items-center justify-center w-full h-full -mt-6">
+<div class="size-14 bg-primary rounded-full flex items-center justify-center shadow-lg shadow-blue-500/40 border-4 border-[#D1F8EF]">
+<span class="material-symbols-outlined text-white text-3xl">local_police</span>
+</div>
+<span class="text-[10px] font-bold text-primary mt-1">Safety</span>
+</div>
+<button class="flex flex-col items-center justify-center w-full h-full gap-1 text-gray-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl">notifications</span>
+<span class="text-[10px] font-medium">Alerts</span>
+</button>
+<button class="flex flex-col items-center justify-center w-full h-full gap-1 text-gray-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</button>
+</div>
+</nav>
+</div>
+</body></html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Grievance Reporting Screen - Campus OS</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3673b5",      // Strong Blue
+                        "secondary": "#578FCA",    // Mid Blue
+                        "accent": "#A1E3F9",       // Ice Blue
+                        "mint": "#D1F8EF",         // Background Mint
+                        "background-light": "#D1F8EF", 
+                        "background-dark": "#13191f",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    backgroundImage: {
+                        'glass-gradient': 'linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.4) 100%)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar hiding for clean UI */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Glassmorphism utilities */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 32px 0 rgba(54, 115, 181, 0.1);
+        }
+        
+        .glass-input {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(4px);
+        }
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 1px solid rgba(255, 255, 255, 0.5);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-mint text-[#101419] font-display antialiased overflow-x-hidden selection:bg-accent selection:text-primary">
+<!-- Background Decorative Elements (Blobs) -->
+<div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+<div class="absolute top-[-10%] left-[-10%] w-[80%] h-[50%] rounded-full bg-accent blur-[80px] opacity-60"></div>
+<div class="absolute bottom-[10%] right-[-5%] w-[60%] h-[40%] rounded-full bg-secondary blur-[100px] opacity-30"></div>
+<div class="absolute top-[40%] left-[30%] w-[40%] h-[30%] rounded-full bg-mint blur-[60px] opacity-80"></div>
+</div>
+<!-- Main Container -->
+<div class="relative flex min-h-screen w-full flex-col pb-24">
+<!-- Header -->
+<header class="flex items-center p-4 pt-6 justify-between sticky top-0 z-20">
+<button aria-label="Go back" class="text-primary flex size-10 shrink-0 items-center justify-center rounded-full active:bg-white/20 transition-colors">
+<span class="material-symbols-outlined text-[28px]">arrow_back_ios_new</span>
+</button>
+<h2 class="text-[#101419] text-xl font-extrabold leading-tight tracking-[-0.015em] text-center drop-shadow-sm">Report a Grievance</h2>
+<div class="size-10"></div> <!-- Spacer for visual balance -->
+</header>
+<!-- Intro Text -->
+<div class="px-6 mb-4">
+<p class="text-[#36495d] text-base font-medium leading-relaxed text-center">
+                Your voice matters. This safe space allows you to let us know what needs fixing on campus.
+            </p>
+</div>
+<!-- Main Glass Form Card -->
+<main class="px-4 flex-1 w-full max-w-lg mx-auto">
+<div class="glass-panel rounded-3xl p-6 w-full flex flex-col gap-6">
+<!-- Category Chips -->
+<div class="flex flex-col gap-2">
+<label class="text-[#101419] text-sm font-bold ml-1">What is this regarding?</label>
+<div class="flex gap-3 overflow-x-auto scrollbar-hide pb-2 -mx-2 px-2">
+<!-- Active Chip -->
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-primary shadow-md shadow-primary/20 pl-5 pr-5 transition-transform active:scale-95">
+<span class="material-symbols-outlined text-white text-[18px]">engineering</span>
+<span class="text-white text-sm font-semibold">Facilities</span>
+</button>
+<!-- Inactive Chips -->
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-white/60 border border-white/50 pl-5 pr-5 transition-transform active:scale-95 hover:bg-white/80">
+<span class="text-[#36495d] text-sm font-medium">Academic</span>
+</button>
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-white/60 border border-white/50 pl-5 pr-5 transition-transform active:scale-95 hover:bg-white/80">
+<span class="text-[#36495d] text-sm font-medium">Harassment</span>
+</button>
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-white/60 border border-white/50 pl-5 pr-5 transition-transform active:scale-95 hover:bg-white/80">
+<span class="text-[#36495d] text-sm font-medium">Other</span>
+</button>
+</div>
+</div>
+<!-- Text Area -->
+<div class="flex flex-col gap-2">
+<label class="text-[#101419] text-sm font-bold ml-1" for="description">What happened?</label>
+<textarea class="glass-input w-full resize-none rounded-2xl text-[#101419] focus:outline-0 focus:ring-2 focus:ring-primary/50 focus:bg-white/70 border-none min-h-32 placeholder:text-[#5a728c] p-4 text-base font-normal leading-normal shadow-inner transition-all" id="description" placeholder="Describe the incident or issue clearly..."></textarea>
+</div>
+<!-- Evidence Upload -->
+<div class="flex flex-col gap-2">
+<label class="text-[#101419] text-sm font-bold ml-1">Any proof? <span class="text-gray-500 font-normal text-xs">(Optional)</span></label>
+<div class="w-full relative group cursor-pointer">
+<input class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" type="file"/>
+<div class="border-2 border-dashed border-primary/30 group-hover:border-primary/60 rounded-2xl bg-white/30 p-4 flex flex-col items-center justify-center gap-2 transition-colors min-h-[100px]">
+<div class="size-10 rounded-full bg-accent/40 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">add_a_photo</span>
+</div>
+<p class="text-xs font-medium text-primary/80">Tap to upload photos</p>
+</div>
+</div>
+<!-- Image Preview (Mockup showing uploaded state if needed, using image component logic) -->
+<!-- 
+                    <div class="w-full h-24 rounded-2xl overflow-hidden relative mt-2">
+                         <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://placeholder.pics/svg/300');" data-alt="Preview of uploaded evidence"></div>
+                         <button class="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1"><span class="material-symbols-outlined text-sm">close</span></button>
+                    </div>
+                    -->
+</div>
+<!-- Anonymous Switch -->
+<div class="flex items-center justify-between bg-white/40 p-3 rounded-2xl border border-white/40 shadow-sm">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-accent/30 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">visibility_off</span>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-bold text-[#101419]">Stay Anonymous</span>
+<span class="text-xs text-gray-500">Your identity is hidden</span>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<!-- Submit Button -->
+<button class="w-full bg-primary hover:bg-[#2d629a] text-white font-bold text-lg h-14 rounded-2xl shadow-lg shadow-primary/30 flex items-center justify-center gap-2 mt-2 transition-all active:scale-[0.98]">
+<span>Send Report</span>
+<span class="material-symbols-outlined text-[20px]">send</span>
+</button>
+</div>
+</main>
+</div>
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-0 left-0 w-full glass-nav z-50 pb-safe">
+<div class="flex justify-around items-center h-16 max-w-lg mx-auto px-2">
+<a class="flex flex-col items-center justify-center w-full h-full text-gray-500 hover:text-primary transition-colors gap-1 group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">home</span>
+<span class="text-[10px] font-medium">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-primary gap-1" href="#">
+<div class="bg-primary/10 px-4 py-1 rounded-2xl flex flex-col items-center">
+<span class="material-symbols-outlined text-[24px]">campaign</span>
+</div>
+<span class="text-[10px] font-bold">Report</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-gray-500 hover:text-primary transition-colors gap-1 group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">notifications</span>
+<span class="text-[10px] font-medium">Updates</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-gray-500 hover:text-primary transition-colors gap-1 group" href="#">
+<div class="size-6 rounded-full overflow-hidden border border-gray-300 group-hover:border-primary transition-colors">
+<img alt="User Profile Avatar" class="w-full h-full object-cover" data-alt="User profile picture thumbnail" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwqIylpNl7Xajc1BNcF1WGrkNw2svS5wJkwzPZkkIkJtUgZXvdJY26KTXE_wKiNY9XfFFUB8BNZVl0-_R7KGzSSRQD-Cjs4zt4jbnEOBowcz94zpiPGt5qZaIwzYINkD635Up5TBY7qJB-aeEGOoolmH96PjfZr7fZs4dfvniCPOVbN0aZ17K2MZEsGh9gOAfQoLUS8e8YWKrJ-UpdIRIWpe-1_UoratMDffsU3VM6uptFoABXZTKtLZJfZh9gvLMnTcIzcWIBRhw"/>
+</div>
+<span class="text-[10px] font-medium">Profile</span>
+</a>
+</div>
+<!-- Safe area spacing for iOS home indicator -->
+<div class="h-5 w-full"></div>
+</nav>
+</body></html>

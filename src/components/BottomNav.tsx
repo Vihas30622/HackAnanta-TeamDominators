@@ -3,54 +3,43 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Home, MapPin, UtensilsCrossed, Calendar, MoreHorizontal } from 'lucide-react';
 
-const navItems = [
-  { path: '/', icon: Home, label: 'Home' },
-  { path: '/transport', icon: MapPin, label: 'Transport' },
-  { path: '/canteen', icon: UtensilsCrossed, label: 'Canteen' },
-  { path: '/events', icon: Calendar, label: 'Events' },
-  { path: '/more', icon: MoreHorizontal, label: 'More' },
-];
-
-const BottomNav: React.FC = () => {
+const BottomNav = () => {
+  const navigate = useNavigate();
   const location = useLocation();
 
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
+
+  const navItems = [
+    { path: "/", icon: "home", label: "Home" },
+    { path: "/events", icon: "calendar_month", label: "Events" },
+    { path: "/grievance", icon: "chat_bubble", label: "Chat" },
+    { path: "/settings", icon: "person", label: "Profile" },
+  ];
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-xl border-t border-border safe-area-bottom z-40">
-      <div className="flex items-center justify-around px-2 py-2">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[400px] z-50 animate-in slide-in-from-bottom-6 duration-700 delay-300">
+      <nav className="glass-dock h-[72px] rounded-[2rem] flex items-center justify-between px-2 shadow-2xl shadow-primary/10">
         {navItems.map((item) => {
-          const isActive = location.pathname === item.path;
-          const Icon = item.icon;
-          
+          const active = isActive(item.path);
           return (
-            <NavLink
+            <button
               key={item.path}
-              to={item.path}
-              className="nav-item relative flex-1"
+              onClick={() => navigate(item.path)}
+              className={`flex flex-col items-center justify-center w-16 h-full transition-colors gap-1 group ${active ? "text-primary" : "text-muted-foreground hover:text-secondary"
+                }`}
             >
-              {isActive && (
-                <motion.div
-                  layoutId="nav-indicator"
-                  className="absolute inset-0 bg-secondary/20 rounded-xl"
-                  transition={{ type: 'spring', bounce: 0.2, duration: 0.4 }}
-                />
-              )}
-              <Icon 
-                className={`w-5 h-5 relative z-10 transition-colors ${
-                  isActive ? 'text-secondary' : 'text-muted-foreground'
-                }`} 
-              />
-              <span 
-                className={`text-[10px] font-medium relative z-10 transition-colors ${
-                  isActive ? 'text-secondary' : 'text-muted-foreground'
+              isActive ? 'text-secondary' : 'text-muted-foreground'
                 }`}
               >
-                {item.label}
-              </span>
+              {item.label}
+            </span>
             </NavLink>
-          );
+      );
         })}
-      </div>
-    </nav>
+    </div>
+    </nav >
   );
 };
 

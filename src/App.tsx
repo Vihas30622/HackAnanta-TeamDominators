@@ -76,15 +76,27 @@ const AdminRoute: React.FC<{
   return <>{children}</>;
 };
 
-// App Layout with navigation
+// App Layout with navigation & background
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <>
-      <NotificationBanner />
-      {children}
-      <SOSButton />
-      <BottomNav />
-      <InstallPrompt />
+      {/* Background Gradients (Atmosphere) */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        {/* Top Left Blue Blob */}
+        <div className="absolute -top-[10%] -left-[10%] w-[80vw] h-[80vw] rounded-full bg-accent mix-blend-multiply filter blur-[80px] opacity-70 animate-pulse-slow"></div>
+        {/* Center Right Secondary Blob */}
+        <div className="absolute top-[20%] -right-[20%] w-[70vw] h-[70vw] rounded-full bg-secondary/30 mix-blend-multiply filter blur-[90px] opacity-60"></div>
+        {/* Bottom Primary Blob */}
+        <div className="absolute bottom-0 left-[10%] w-[90vw] h-[90vw] rounded-full bg-primary/10 mix-blend-multiply filter blur-[100px] opacity-50"></div>
+      </div>
+
+      <div className="relative z-10 min-h-screen pb-28">
+        <NotificationBanner />
+        {children}
+        <SOSButton />
+        <BottomNav />
+        <InstallPrompt />
+      </div>
     </>
   );
 };
