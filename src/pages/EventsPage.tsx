@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
@@ -13,19 +14,23 @@ interface EventItem {
   time: string;
   location: string;
   image?: string;
-  category?: string;
+  category: string;
+  maxSeats?: number;
+  seatsRemaining?: number;
 }
 
 const EventsPage = () => {
   const [activeTab, setActiveTab] = useState('All');
   const [events, setEvents] = useState<EventItem[]>([]);
+  const [myRegisteredEventIds, setMyRegisteredEventIds] = useState<string[]>([]);
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const isAdmin = user?.role === 'super_admin';
+  const isAdmin = user?.role === 'super_admin' || user?.role === 'event_admin';
 
   const tabs = [
     { id: 'All', icon: 'star', label: 'All Events' },
+    { id: 'My Events', icon: 'event_available', label: 'My Events' },
     { id: 'Volunteering', icon: 'volunteer_activism', label: 'Volunteering' },
     { id: 'Social', icon: 'groups', label: 'Social' },
     { id: 'Sports', icon: 'emoji_events', label: 'Sports' },
@@ -46,9 +51,26 @@ const EventsPage = () => {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (!db || !user) return;
+
+    // Simple fetch for now, can be optimized with query
+    const unsubscribe = onSnapshot(collection(db, 'registrations'), (snapshot) => {
+      // Filter client side for simplicity given likely connection structure
+      // In prod, use where('userId', '==', user.id)
+      const myIds = snapshot.docs
+        .filter(doc => doc.data().userId === user.id)
+        .map(doc => doc.data().eventId);
+      setMyRegisteredEventIds(myIds);
+    });
+    return () => unsubscribe();
+  }, [user]);
+
   const filteredEvents = activeTab === 'All'
     ? events
-    : events.filter(e => e.category === activeTab);
+    : activeTab === 'My Events'
+      ? events.filter(e => myRegisteredEventIds.includes(e.id))
+      : events.filter(e => e.category === activeTab);
 
   return (
     <div className="flex flex-col h-full fade-in pb-28">
@@ -140,7 +162,7 @@ const EventsPage = () => {
           <div className="text-center py-8 text-muted-foreground">No events found.</div>
         ) : (
           filteredEvents.map((event) => (
-            <div key={event.id} className="glass-panel p-3 rounded-[24px] flex gap-4 items-center shadow-sm hover:scale-[1.01] transition-transform cursor-pointer">
+            <div key={event.id} onClick={() => navigate(`/events/${event.id}`)} className="glass-panel p-3 rounded-[24px] flex gap-4 items-center shadow-sm hover:scale-[1.01] transition-transform cursor-pointer">
               <div className="relative shrink-0">
                 <div className="w-24 h-24 rounded-2xl bg-cover bg-center bg-gray-200" style={{ backgroundImage: event.image ? `url('${event.image}')` : undefined }}>
                   {!event.image && <span className="flex items-center justify-center h-full text-xs text-gray-400">No Img</span>}
@@ -159,7 +181,13 @@ const EventsPage = () => {
                   <span className="material-symbols-outlined text-[14px]">schedule</span> {event.time} • {event.location}
                 </p>
                 <div className="mt-2 flex justify-end items-center">
-                  <button className="text-primary text-sm font-bold bg-primary/10 px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-colors">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/events/${event.id}`);
+                    }}
+                    className="text-primary text-sm font-bold bg-primary/10 px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-colors"
+                  >
                     View
                   </button>
                 </div>

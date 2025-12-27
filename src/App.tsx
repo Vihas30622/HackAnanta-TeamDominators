@@ -18,6 +18,7 @@ import MentalHealthPage from "@/pages/MentalHealthPage";
 import ResourcesPage from "@/pages/ResourcesPage";
 import CanteenPage from "@/pages/CanteenPage";
 import EventsPage from "@/pages/EventsPage";
+import EventDetailsPage from "@/pages/EventDetailsPage";
 import GrievancePage from "@/pages/GrievancePage";
 import EmergencyPage from "@/pages/EmergencyPage";
 import MorePage from "@/pages/MorePage";
@@ -177,6 +178,16 @@ const AppRoutes: React.FC = () => {
         }
       />
       <Route
+        path="/events/:id"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <EventDetailsPage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/grievance"
         element={
           <ProtectedRoute>
@@ -261,7 +272,7 @@ const AppRoutes: React.FC = () => {
       <Route
         path="/admin/events"
         element={
-          <AdminRoute allowedRoles={['super_admin']}>
+          <AdminRoute allowedRoles={['super_admin', 'event_admin']}>
             <AppLayout>
               <EventsAdminPage />
             </AppLayout>

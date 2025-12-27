@@ -4,7 +4,7 @@ import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, order
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     ArrowLeft, Plus, Pencil, Trash2, X, Check,
-    Calendar, MapPin, Search, Image as ImageIcon
+    Calendar, MapPin, Search, Image as ImageIcon, Users, Download, CheckCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,11 @@ interface EventItem {
     time: string;
     location: string;
     image?: string;
+    category: string;
+    maxSeats: number;
+    seatsRemaining: number;
+    registrationDeadline: string;
+    organizerContact: string;
 }
 
 const EventsAdminPage: React.FC = () => {
@@ -32,7 +37,16 @@ const EventsAdminPage: React.FC = () => {
         time: '',
         location: '',
         image: '',
+        category: 'General',
+        maxSeats: 0,
+        seatsRemaining: 0,
+        registrationDeadline: '',
+        organizerContact: ''
     });
+
+    // Participant Management State
+    const [viewingParticipants, setViewingParticipants] = useState<EventItem | null>(null);
+    const [registrations, setRegistrations] = useState<any[]>([]);
 
     // Fetch items from Firestore
     useEffect(() => {
@@ -54,6 +68,21 @@ const EventsAdminPage: React.FC = () => {
         return () => unsubscribe();
     }, []);
 
+    // Fetch Participants when viewing an event
+    useEffect(() => {
+        if (!db || !viewingParticipants) return;
+
+        const q = query(collection(db, 'registrations'), orderBy('registeredAt', 'desc'));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const regs = snapshot.docs
+                .map(doc => ({ id: doc.id, ...doc.data() }))
+                .filter((r: any) => r.eventId === viewingParticipants.id);
+            setRegistrations(regs);
+        });
+
+        return () => unsubscribe();
+    }, [viewingParticipants]);
+
     const filteredItems = events.filter(item =>
         item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.location.toLowerCase().includes(searchQuery.toLowerCase())
@@ -69,6 +98,11 @@ const EventsAdminPage: React.FC = () => {
                 time: item.time,
                 location: item.location,
                 image: item.image || '',
+                category: item.category || 'General',
+                maxSeats: item.maxSeats || 0,
+                seatsRemaining: item.seatsRemaining || 0,
+                registrationDeadline: item.registrationDeadline || '',
+                organizerContact: item.organizerContact || ''
             });
         } else {
             setEditingItem(null);
@@ -79,6 +113,11 @@ const EventsAdminPage: React.FC = () => {
                 time: '',
                 location: '',
                 image: '',
+                category: 'General',
+                maxSeats: 0,
+                seatsRemaining: 0,
+                registrationDeadline: '',
+                organizerContact: ''
             });
         }
         setShowForm(true);
@@ -123,6 +162,7 @@ const EventsAdminPage: React.FC = () => {
             } else {
                 await addDoc(collection(db, 'events'), {
                     ...formData,
+                    seatsRemaining: formData.maxSeats, // Initialize seats remaining
                     createdAt: new Date().toISOString()
                 });
                 toast.success('Event added!');
@@ -146,6 +186,58 @@ const EventsAdminPage: React.FC = () => {
             }
         }
     };
+
+    const handleMarkAttendance = async (regId: string) => {
+        if (!db) return;
+        try {
+            await updateDoc(doc(db, 'registrations', regId), {
+                status: 'attended',
+                attendedAt: new Date().toISOString()
+            });
+            toast.success('Marked as attended');
+        } catch (error) {
+            toast.error('Failed to update status');
+        }
+    };
+
+    const handleExport = () => {
+        if (!registrations.length) return;
+
+        const headers = ['Name', 'Email', 'Status', 'Registered At', 'Attended At'];
+        const csvContent = "data:text/csv;charset=utf-8,"
+            + [headers.join(','), ...registrations.map(r => [
+                r.userName,
+                r.userEmail,
+                r.status,
+                r.registeredAt,
+                r.attendedAt || ''
+            ].join(','))].join('\n');
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `participants_${viewingParticipants?.title}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const [participantSearch, setParticipantSearch] = useState('');
+
+    const filteredRegistrations = registrations.filter(reg => {
+        const searchLower = participantSearch.toLowerCase();
+        // Handle QR Code JSON scan
+        if (participantSearch.trim().startsWith('{')) {
+            try {
+                const data = JSON.parse(participantSearch);
+                if (data.uid) return reg.userId === data.uid;
+            } catch (e) { }
+        }
+
+        return reg.userName.toLowerCase().includes(searchLower) ||
+            reg.userEmail.toLowerCase().includes(searchLower) ||
+            reg.userId === participantSearch;
+    });
 
     return (
         <div className="min-h-screen bg-background pb-24">
@@ -232,6 +324,13 @@ const EventsAdminPage: React.FC = () => {
                                 >
                                     <Trash2 className="w-4 h-4 text-destructive" />
                                 </button>
+                                <button
+                                    onClick={() => setViewingParticipants(item)}
+                                    className="p-2 rounded-lg hover:bg-muted transition-colors"
+                                    title="View Participants"
+                                >
+                                    <Users className="w-4 h-4 text-primary" />
+                                </button>
                             </div>
                         </div>
                     </motion.div>
@@ -311,6 +410,33 @@ const EventsAdminPage: React.FC = () => {
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
+                                        <label className="text-sm font-medium text-foreground mb-2 block">Category</label>
+                                        <select
+                                            value={formData.category}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                                            className="w-full bg-muted rounded-xl px-4 py-3 text-sm text-foreground outline-none focus:ring-2 ring-primary/50"
+                                        >
+                                            <option value="General">General</option>
+                                            <option value="Social">Social</option>
+                                            <option value="Workshop">Workshop</option>
+                                            <option value="Sports">Sports</option>
+                                            <option value="Volunteering">Volunteering</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-foreground mb-2 block">Organizer Contact</label>
+                                        <input
+                                            type="text"
+                                            value={formData.organizerContact}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, organizerContact: e.target.value }))}
+                                            placeholder="Email or Phone"
+                                            className="w-full bg-muted rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 ring-primary/50"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
                                         <label className="text-sm font-medium text-foreground mb-2 block">Date</label>
                                         <input
                                             type="date"
@@ -325,6 +451,27 @@ const EventsAdminPage: React.FC = () => {
                                             type="time"
                                             value={formData.time}
                                             onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
+                                            className="w-full bg-muted rounded-xl px-4 py-3 text-sm text-foreground outline-none focus:ring-2 ring-primary/50"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-sm font-medium text-foreground mb-2 block">Max Seats</label>
+                                        <input
+                                            type="number"
+                                            value={formData.maxSeats}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, maxSeats: parseInt(e.target.value) || 0 }))}
+                                            className="w-full bg-muted rounded-xl px-4 py-3 text-sm text-foreground outline-none focus:ring-2 ring-primary/50"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-foreground mb-2 block">Reg. Deadline</label>
+                                        <input
+                                            type="datetime-local"
+                                            value={formData.registrationDeadline}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, registrationDeadline: e.target.value }))}
                                             className="w-full bg-muted rounded-xl px-4 py-3 text-sm text-foreground outline-none focus:ring-2 ring-primary/50"
                                         />
                                     </div>
@@ -357,6 +504,90 @@ const EventsAdminPage: React.FC = () => {
                                     <Check className="w-5 h-5 mr-2" />
                                     {editingItem ? 'Update Event' : 'Create Event'}
                                 </Button>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
+
+            {/* Participants Modal */}
+            <AnimatePresence>
+                {viewingParticipants && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50"
+                            onClick={() => setViewingParticipants(null)}
+                        />
+                        <motion.div
+                            initial={{ y: '100%' }}
+                            animate={{ y: 0 }}
+                            exit={{ y: '100%' }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                            className="fixed bottom-0 left-0 right-0 bg-card rounded-t-3xl z-50 max-h-[90vh] flex flex-col"
+                        >
+                            <div className="p-4 border-b border-border flex items-center justify-between">
+                                <div>
+                                    <h2 className="text-lg font-bold text-foreground">Participants</h2>
+                                    <p className="text-xs text-muted-foreground">{viewingParticipants.title}</p>
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button size="sm" variant="outline" onClick={handleExport}>
+                                        <Download className="w-4 h-4 mr-1" /> Export
+                                    </Button>
+                                    <button onClick={() => setViewingParticipants(null)} className="p-2 rounded-lg hover:bg-muted">
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="px-4 py-2 border-b border-border bg-muted/30">
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search or Scan QR Code (JSON)..."
+                                        value={participantSearch}
+                                        onChange={(e) => setParticipantSearch(e.target.value)}
+                                        className="w-full bg-background rounded-xl pl-9 pr-4 py-2 text-sm outline-none focus:ring-2 ring-primary/50"
+                                        autoFocus
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="p-4 overflow-y-auto flex-1 h-[600px] space-y-2">
+                                <div className="flex justify-between text-sm font-medium text-muted-foreground px-2 mb-2">
+                                    <span>Student</span>
+                                    <span>Status</span>
+                                </div>
+                                {filteredRegistrations.map(reg => (
+                                    <div key={reg.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-xl">
+                                        <div>
+                                            <p className="font-semibold text-foreground">{reg.userName}</p>
+                                            <p className="text-xs text-muted-foreground">{reg.userEmail}</p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className={`text-xs px-2 py-1 rounded-full font-medium ${reg.status === 'attended' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                                                }`}>
+                                                {reg.status}
+                                            </span>
+                                            {reg.status !== 'attended' && (
+                                                <button
+                                                    onClick={() => handleMarkAttendance(reg.id)}
+                                                    className="p-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20"
+                                                    title="Mark Attended"
+                                                >
+                                                    <CheckCircle className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                                {filteredRegistrations.length === 0 && (
+                                    <div className="text-center py-8 text-muted-foreground">No participants found.</div>
+                                )}
                             </div>
                         </motion.div>
                     </>
