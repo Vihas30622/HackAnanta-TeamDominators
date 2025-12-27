@@ -72,30 +72,28 @@ const HomePage = () => {
     console.log("SOS ACTIONS TRIGGERED");
     const SOS_NUMBER = "7075933919";
 
-    // Immediate action function (Call + WhatsApp)
-    const executeRescueActions = (latitude?: number, longitude?: number) => {
-      // 1. WhatsApp (Opens in new tab/app)
-      if (emergencyContacts.length > 0) {
-        const contact = emergencyContacts[0];
-        const locString = latitude && longitude ? `Location: https://www.google.com/maps?q=${latitude},${longitude}` : 'Location: Unavailable';
-        const message = `HELP! I am in danger. ${locString}`;
-        const phone = contact.phone.replace(/\D/g, '');
-        const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    // Immediate action: WhatsApp + Call
+    // ALERT: Must be synchronous to avoid Popup Blockers!
+    if (emergencyContacts.length > 0) {
+      const contact = emergencyContacts[0];
+      // We can't wait for location, so we send a generic help message immediately.
+      // The exact location will be logged to Admin Dashboard via Firestore.
+      const message = `HELP! I am in danger. Tracking my location via Campus Connect App.`;
+      const phone = contact.phone.replace(/\D/g, '');
+      const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 
-        // Open WhatsApp immediately
-        window.open(waUrl, '_blank');
-      } else {
-        toast.error("No emergency contacts for WhatsApp!");
-      }
+      // Open immediately (User Action Trusted)
+      window.open(waUrl, '_blank');
+    } else {
+      toast.error("No emergency contacts for WhatsApp!");
+    }
 
-      // 2. Phone Call (Triggers system dialog)
-      // Slight delay (500ms) to ensure WhatsApp command is processed by browser first
-      setTimeout(() => {
-        window.location.href = `tel:${SOS_NUMBER}`;
-      }, 500);
-    };
+    // Call after small delay
+    setTimeout(() => {
+      window.location.href = `tel:${SOS_NUMBER}`;
+    }, 1000);
 
-    // Helper to log to Firestore
+    // Background: Log Location to Firestore
     const logSOS = async (lat?: number, lng?: number) => {
       if (!db || !user) return;
       try {
@@ -113,30 +111,20 @@ const HomePage = () => {
       }
     };
 
-    // Execute Logic
     if (navigator.geolocation) {
-      toast.info("Acquiring location... (Actions triggered in background)");
-
-      // OPTIMIZATION: Don't wait for location to start actions if it's slow.
-      // We start actions "optimistically" if location takes too long (e.g., > 2s), 
-      // but ideally we want location.
-
+      toast.info("SOS Sent! logging location...");
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const { latitude, longitude } = position.coords;
-          logSOS(latitude, longitude);
-          executeRescueActions(latitude, longitude);
+          logSOS(position.coords.latitude, position.coords.longitude);
         },
         (error) => {
           console.error("Location error", error);
           logSOS();
-          executeRescueActions(); // Proceed without location
         },
-        { timeout: 3000, enableHighAccuracy: true }
+        { timeout: 5000, enableHighAccuracy: true }
       );
     } else {
       logSOS();
-      executeRescueActions();
     }
   };
 
