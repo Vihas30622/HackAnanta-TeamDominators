@@ -31,6 +31,8 @@ const EventsPage = () => {
   const tabs = [
     { id: 'All', icon: 'star', label: 'All Events' },
     { id: 'My Events', icon: 'event_available', label: 'My Events' },
+    { id: 'General', icon: 'campaign', label: 'General' },
+    { id: 'Workshop', icon: 'school', label: 'Workshops' },
     { id: 'Volunteering', icon: 'volunteer_activism', label: 'Volunteering' },
     { id: 'Social', icon: 'groups', label: 'Social' },
     { id: 'Sports', icon: 'emoji_events', label: 'Sports' },

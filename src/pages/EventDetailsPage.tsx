@@ -258,11 +258,33 @@ const EventDetailsPage: React.FC = () => {
                                 <div className="material-symbols-outlined">check_circle</div>
                             </div>
                             <h3 className="text-lg font-bold text-green-700">You're Registered!</h3>
-                            <p className="text-xs text-muted-foreground">Show this QR code at the venue for entry.</p>
 
-                            <div className="bg-white p-4 rounded-xl shadow-inner dashed-border">
-                                <img src={getQRCodeUrl()} alt="Entry QR Code" className="w-48 h-48 mix-blend-multiply" />
-                            </div>
+                            {(() => {
+                                const eventDate = new Date(event.date);
+                                const today = new Date();
+                                const isEventToday = eventDate.toDateString() === today.toDateString();
+                                const canShowQr = isEventToday;
+
+                                return (
+                                    <>
+                                        <p className="text-xs text-muted-foreground">
+                                            {canShowQr ? "Show this QR code at the venue." : `QR code will be visible on ${eventDate.toLocaleDateString()}`}
+                                        </p>
+
+                                        {canShowQr ? (
+                                            <div className="bg-white p-4 rounded-xl shadow-inner dashed-border">
+                                                <img src={getQRCodeUrl()} alt="Entry QR Code" className="w-48 h-48 mix-blend-multiply" />
+                                            </div>
+                                        ) : (
+                                            <div className="bg-muted p-8 rounded-xl dashed-border flex flex-col items-center justify-center w-full max-w-[200px]">
+                                                <div className="material-symbols-outlined text-4xl text-gray-400 mb-2">qr_code_scanner</div>
+                                                <p className="text-xs text-muted-foreground font-bold">QR Locked</p>
+                                                <p className="text-[10px] text-muted-foreground">Available on event day</p>
+                                            </div>
+                                        )}
+                                    </>
+                                );
+                            })()}
 
                             <Button
                                 variant="outline"
