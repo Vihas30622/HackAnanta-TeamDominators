@@ -25,6 +25,7 @@ import CanteenPage from "@/pages/CanteenPage";
 import EventsPage from "@/pages/EventsPage";
 import EventDetailsPage from "@/pages/EventDetailsPage";
 import GrievancePage from "@/pages/GrievancePage";
+import CommunityChatPage from "./modules/community-chat/CommunityChatPage"; // Import Chat Module
 import EmergencyPage from "@/pages/EmergencyPage";
 import MorePage from "@/pages/MorePage";
 import SettingsPage from "@/pages/SettingsPage";
@@ -192,6 +193,18 @@ const AppRoutes: React.FC = () => {
             <StudentRoute>
               <AppLayout>
                 <GrievancePage />
+              </AppLayout>
+            </StudentRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/community-chat/*"
+        element={
+          <ProtectedRoute>
+            <StudentRoute>
+              <AppLayout>
+                <CommunityChatPage />
               </AppLayout>
             </StudentRoute>
           </ProtectedRoute>

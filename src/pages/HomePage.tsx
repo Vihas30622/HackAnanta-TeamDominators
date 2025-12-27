@@ -203,10 +203,15 @@ const HomePage = () => {
           <span className="text-muted-foreground text-sm font-semibold tracking-wide uppercase">{currentDate}</span>
           <h1 className="text-2xl font-extrabold text-foreground tracking-tight">Hi, {user?.name?.split(' ')[0] || 'Student'}! 👋</h1>
         </div>
-        <button aria-label="Notifications" onClick={() => navigate('/notifications')} className="glass w-12 h-12 flex items-center justify-center rounded-xl text-primary active:scale-95 transition-transform duration-200 relative">
-          <span className="material-symbols-outlined text-[26px]">notifications</span>
-          <span className="absolute top-3 right-3 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button aria-label="Community Chat" onClick={() => navigate('/community-chat')} className="glass w-12 h-12 flex items-center justify-center rounded-xl text-primary active:scale-95 transition-transform duration-200">
+            <span className="material-symbols-outlined text-[26px]">forum</span>
+          </button>
+          <button aria-label="Notifications" onClick={() => navigate('/notifications')} className="glass w-12 h-12 flex items-center justify-center rounded-xl text-primary active:scale-95 transition-transform duration-200 relative">
+            <span className="material-symbols-outlined text-[26px]">notifications</span>
+            <span className="absolute top-3 right-3 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+          </button>
+        </div>
       </header>
 
       {/* SOS Hero Section */}
