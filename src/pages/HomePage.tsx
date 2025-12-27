@@ -72,7 +72,7 @@ const HomePage = () => {
 
   const triggerSOSActions = () => {
     console.log("SOS ACTIONS TRIGGERED");
-    const SOS_NUMBER = "7075933919";
+    const SOS_NUMBER = "8919611804";
 
     // Immediate action: WhatsApp + Call
     // ALERT: Must be synchronous to avoid Popup Blockers!

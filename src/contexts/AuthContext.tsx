@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import {
   User as FirebaseUser,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   onAuthStateChanged
 } from 'firebase/auth';
@@ -140,7 +142,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           localStorage.setItem('campusos_user', JSON.stringify(userProfile));
         } catch (error) {
           console.error('Error fetching user profile:', error);
-          // Fallback to basic user info
           setUser({
             id: fbUser.uid,
             name: fbUser.displayName || 'Student',
@@ -157,15 +158,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(false);
     });
 
+    // Check for redirect result (Android/Mobile flow)
+    getRedirectResult(auth).then((result) => {
+      if (result) {
+        toast.success("Welcome back! Signed in via redirect.");
+      }
+    }).catch((error) => {
+      console.error("Redirect Login Error:", error);
+      toast.error(`Login failed: ${error.code} - ${error.message}`);
+    });
+
     return () => unsubscribe();
   }, []);
 
   const login = async () => {
     if (!auth) {
-      // Mock login when Firebase not configured
+      // Mock login handling (unchanged)
       setIsLoading(true);
       await new Promise(resolve => setTimeout(resolve, 1000));
-
+      // ... mock data ...
       const mockUser: User = {
         id: '1',
         name: 'Demo Student',
@@ -173,28 +184,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${Date.now()}`,
         role: 'student'
       };
-
       setUser(mockUser);
       localStorage.setItem('campusos_user', JSON.stringify(mockUser));
       setIsLoading(false);
-      toast.info('Running in demo mode. Configure Firebase for real authentication.');
+      toast.info('Running in demo mode.');
       return;
     }
 
     try {
       setIsLoading(true);
-      await signInWithPopup(auth, googleProvider);
-      toast.success('Signed in successfully!');
+      // Use Redirect for reliable mobile auth
+      await signInWithRedirect(auth, googleProvider);
+      // Note: The promise resolves when redirect starts, not when login finishes.
     } catch (error: any) {
       console.error('Login error:', error);
-
-      if (error.code === 'auth/popup-closed-by-user') {
-        toast.error('Sign-in cancelled');
-      } else if (error.code === 'auth/popup-blocked') {
-        toast.error('Popup blocked. Please allow popups for this site.');
-      } else {
-        toast.error('Failed to sign in. Please try again.');
-      }
+      toast.error(`Start Login Failed: ${error.code}`);
       setIsLoading(false);
     }
   };

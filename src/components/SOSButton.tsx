@@ -62,7 +62,7 @@ const SOSButton: React.FC<SOSButtonProps> = ({ onActivate }) => {
           });
 
           // Call Emergency Number
-          const phoneNumber = "7075933919";
+          const phoneNumber = "8919611804";
           window.location.href = `tel:${phoneNumber}`;
 
           // Send Email (using mailto for immediate client-side action without backend)
@@ -79,7 +79,7 @@ const SOSButton: React.FC<SOSButtonProps> = ({ onActivate }) => {
             duration: 5000,
           });
 
-          const phoneNumber = "7075933919";
+          const phoneNumber = "8919611804";
           window.location.href = `tel:${phoneNumber}`;
 
           // Send Email fallback (no location)

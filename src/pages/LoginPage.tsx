@@ -13,6 +13,10 @@ const LoginPage = () => {
       return <Navigate to="/admin/food" replace />;
     } else if (user.role === 'resource_admin') {
       return <Navigate to="/admin/resources" replace />;
+    } else if (user.role === 'transport_admin') {
+      return <Navigate to="/admin/transport" replace />;
+    } else if (user.role === 'event_admin') {
+      return <Navigate to="/admin/events" replace />;
     } else {
       return <Navigate to="/" replace />;
     }

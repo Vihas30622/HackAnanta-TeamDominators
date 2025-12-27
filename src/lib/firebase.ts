@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, setPersistence, indexedDBLocalPersistence, browserLocalPersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getMessaging, getToken, onMessage, isSupported } from 'firebase/messaging';
 
@@ -21,6 +21,10 @@ const app = isConfigured ? initializeApp(firebaseConfig) : null;
 
 // Initialize services
 export const auth = app ? getAuth(app) : null;
+
+if (auth) {
+  setPersistence(auth, indexedDBLocalPersistence).catch(e => console.error("Persistence", e));
+}
 export const db = app ? getFirestore(app) : null;
 export const googleProvider = new GoogleAuthProvider();
 
@@ -29,17 +33,17 @@ let messagingInstance: ReturnType<typeof getMessaging> | null = null;
 
 export const getMessagingInstance = async () => {
   if (!app) return null;
-  
+
   const supported = await isSupported();
   if (!supported) {
     console.log('FCM not supported in this browser');
     return null;
   }
-  
+
   if (!messagingInstance) {
     messagingInstance = getMessaging(app);
   }
-  
+
   return messagingInstance;
 };
 
