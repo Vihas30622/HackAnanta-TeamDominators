@@ -35,6 +35,7 @@ import EventsAdminPage from "@/pages/admin/EventsAdminPage";
 import TransportAdminPage from "@/pages/admin/TransportAdminPage";
 import SuperAdminPage from "@/pages/admin/SuperAdminPage";
 import NotificationsAdminPage from "@/pages/admin/NotificationsAdminPage";
+import GrievanceAdminPage from "@/pages/admin/GrievanceAdminPage";
 import AdminDashboardPage from "@/pages/admin/AdminDashboardPage"; // Updated Super Admin Hub
 import RoleConfigPage from "@/pages/admin/RoleConfigPage";
 import PaymentPage from "@/pages/PaymentPage";
@@ -316,6 +317,16 @@ const AppRoutes: React.FC = () => {
           <AdminRoute allowedRoles={['super_admin']}>
             <AdminLayout>
               <NotificationsAdminPage />
+            </AdminLayout>
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/grievances"
+        element={
+          <AdminRoute allowedRoles={['super_admin']}>
+            <AdminLayout>
+              <GrievanceAdminPage />
             </AdminLayout>
           </AdminRoute>
         }

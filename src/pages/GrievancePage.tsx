@@ -1,117 +1,157 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Send, ShieldAlert, UserX } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { toast } from 'sonner';
 
-const GrievancePage = () => {
+const GrievancePage: React.FC = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const [activeCategory, setActiveCategory] = useState('Facilities');
-  const [isAnonymous, setIsAnonymous] = useState(true);
+  const [category, setCategory] = useState('General');
+  const [description, setDescription] = useState('');
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const categories = [
-    { id: 'Facilities', icon: 'engineering', label: 'Facilities' },
-    { id: 'Academic', label: 'Academic' },
-    { id: 'Harassment', label: 'Harassment' },
-    { id: 'Other', label: 'Other' },
+    'General',
+    'Harassment',
+    'Bullying',
+    'Infrastructure',
+    'Academic',
+    'Discrimination',
+    'Safety'
   ];
 
+  const handleSubmit = async () => {
+    if (!description.trim()) {
+      toast.error('Please describe your grievance.');
+      return;
+    }
+
+    if (!db) return;
+
+    setIsSubmitting(true);
+    try {
+      await addDoc(collection(db, 'grievances'), {
+        userId: isAnonymous ? 'ANONYMOUS' : user?.id,
+        userName: isAnonymous ? 'Anonymous Student' : user?.name,
+        userEmail: isAnonymous ? 'hidden' : user?.email,
+        category,
+        description,
+        isAnonymous,
+        status: 'pending', // pending, resolved, dismissed
+        createdAt: serverTimestamp(),
+      });
+
+      toast.success('Grievance submitted successfully.', {
+        description: isAnonymous ? 'Your identity is hidden.' : 'Admins will review this shortly.'
+      });
+      navigate('/more');
+    } catch (error) {
+      console.error('Error submitting grievance:', error);
+      toast.error('Failed to submit grievance. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className="flex flex-col min-h-screen bg-mint/30 pb-24 fade-in">
+    <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <header className="flex items-center p-4 pt-6 justify-between sticky top-0 z-20">
-        <button
-          onClick={() => navigate(-1)}
-          aria-label="Go back"
-          className="text-primary flex size-10 shrink-0 items-center justify-center rounded-full active:bg-white/20 transition-colors"
-        >
-          <span className="material-symbols-outlined text-[28px]">arrow_back_ios_new</span>
-        </button>
-        <h2 className="text-[#101419] text-xl font-extrabold leading-tight tracking-[-0.015em] text-center drop-shadow-sm">Report a Grievance</h2>
-        <div className="size-10"></div>
+      <header className="px-4 pt-4 pb-4 safe-area-top border-b border-border sticky top-0 bg-background/80 backdrop-blur-md z-10">
+        <div className="flex items-center gap-3">
+          <Link to="/more" className="p-2 -ml-2 rounded-xl hover:bg-card transition-colors">
+            <ArrowLeft className="w-5 h-5 text-foreground" />
+          </Link>
+          <div>
+            <h1 className="text-xl font-bold text-foreground">Grievance Redressal</h1>
+            <p className="text-sm text-muted-foreground">Report issues safely</p>
+          </div>
+        </div>
       </header>
 
-      {/* Intro Text */}
-      <div className="px-6 mb-4">
-        <p className="text-[#36495d] text-base font-medium leading-relaxed text-center">
-          Your voice matters. This safe space allows you to let us know what needs fixing on campus.
-        </p>
-      </div>
+      <main className="px-4 py-6 space-y-6">
 
-      {/* Main Glass Form Card */}
-      <main className="px-4 flex-1 w-full max-w-lg mx-auto">
-        <div className="glass-panel rounded-3xl p-6 w-full flex flex-col gap-6">
+        {/* Info Card */}
+        <div className="glass-card p-4 flex gap-3 border-l-4 border-l-primary">
+          <ShieldAlert className="w-6 h-6 text-primary shrink-0" />
+          <div className="text-sm">
+            <p className="font-semibold text-foreground">Safe & Secure Reporting</p>
+            <p className="text-muted-foreground mt-1">
+              Your concerns are taken seriously. You can report harassing, bullying, or any other issues directly to the administration.
+            </p>
+          </div>
+        </div>
 
-          {/* Category Chips */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[#101419] text-sm font-bold ml-1">What is this regarding?</label>
-            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 -mx-2 px-2">
-              {categories.map((cat) => (
+        {/* Form */}
+        <div className="space-y-4">
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Category</label>
+            <div className="grid grid-cols-2 gap-2">
+              {categories.map(cat => (
                 <button
-                  key={cat.id}
-                  onClick={() => setActiveCategory(cat.id)}
-                  className={`flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl pl-5 pr-5 transition-transform active:scale-95 ${activeCategory === cat.id
-                      ? 'bg-primary text-white shadow-md shadow-primary/20'
-                      : 'bg-white/60 border border-white/50 text-[#36495d] hover:bg-white/80'
+                  key={cat}
+                  onClick={() => setCategory(cat)}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${category === cat
+                      ? 'bg-primary text-primary-foreground shadow-md'
+                      : 'bg-card text-muted-foreground hover:bg-muted'
                     }`}
                 >
-                  {cat.icon && (
-                    <span className="material-symbols-outlined text-[18px]">{cat.icon}</span>
-                  )}
-                  <span className="text-sm font-semibold">{cat.label}</span>
+                  {cat}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Text Area */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[#101419] text-sm font-bold ml-1" htmlFor="description">What happened?</label>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Description</label>
             <textarea
-              id="description"
-              className="glass-input w-full resize-none rounded-2xl text-[#101419] focus:outline-0 focus:ring-2 focus:ring-primary/50 focus:bg-white/70 border-none min-h-32 placeholder:text-text-muted p-4 text-base font-normal leading-normal shadow-inner transition-all"
-              placeholder="Describe the incident or issue clearly..."
-            ></textarea>
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Please describe the issue in detail..."
+              className="w-full h-32 bg-card rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 ring-primary/50 resize-none border border-border"
+            />
           </div>
 
-          {/* Evidence Upload */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[#101419] text-sm font-bold ml-1">Any proof? <span className="text-text-muted font-normal text-xs">(Optional)</span></label>
-            <div className="w-full relative group cursor-pointer">
-              <input className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" type="file" />
-              <div className="border-2 border-dashed border-primary/30 group-hover:border-primary/60 rounded-2xl bg-white/30 p-4 flex flex-col items-center justify-center gap-2 transition-colors min-h-[100px]">
-                <div className="size-10 rounded-full bg-accent/40 flex items-center justify-center text-primary">
-                  <span className="material-symbols-outlined">add_a_photo</span>
-                </div>
-                <p className="text-xs font-medium text-primary/80">Tap to upload photos</p>
-              </div>
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isAnonymous ? 'bg-secondary text-white' : 'bg-muted text-muted-foreground'}`}>
+              <UserX className="w-5 h-5" />
             </div>
-          </div>
-
-          {/* Anonymous Switch */}
-          <div className="flex items-center justify-between bg-white/40 p-3 rounded-2xl border border-white/40 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="size-10 rounded-full bg-accent/30 flex items-center justify-center text-primary">
-                <span className="material-symbols-outlined">visibility_off</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-bold text-[#101419]">Stay Anonymous</span>
-                <span className="text-xs text-gray-500">Your identity is hidden</span>
-              </div>
+            <div className="flex-1">
+              <p className="font-semibold text-sm text-foreground">Report Anonymously</p>
+              <p className="text-xs text-muted-foreground">Your name and email will be hidden</p>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                className="sr-only peer"
-                checked={isAnonymous}
-                onChange={() => setIsAnonymous(!isAnonymous)}
-              />
-              <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-            </label>
+            <button
+              onClick={() => setIsAnonymous(!isAnonymous)}
+              className={`w-12 h-6 rounded-full transition-colors relative ${isAnonymous ? 'bg-secondary' : 'bg-muted'}`}
+            >
+              <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${isAnonymous ? 'translate-x-6' : ''}`} />
+            </button>
           </div>
 
-          {/* Submit Button */}
-          <button className="w-full bg-primary hover:bg-[#2d629a] text-white font-bold text-lg h-14 rounded-2xl shadow-lg shadow-primary/30 flex items-center justify-center gap-2 mt-2 transition-all active:scale-[0.98]">
-            <span>Send Report</span>
-            <span className="material-symbols-outlined text-[20px]">send</span>
-          </button>
+          <Button
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="w-full h-12 text-base font-semibold gradient-sos shadow-lg shadow-red-500/20"
+          >
+            {isSubmitting ? (
+              'Submitting...'
+            ) : (
+              <>
+                <Send className="w-5 h-5 mr-2" />
+                Submit Report
+              </>
+            )}
+          </Button>
+
+          <p className="text-xs text-center text-muted-foreground">
+            In case of immediate danger, please use the SOS button on the Home screen.
+          </p>
+
         </div>
       </main>
     </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Bell, BellOff, Moon, Shield, Smartphone, LogOut, Plus, Trash2, Phone } from 'lucide-react';
+import { ArrowLeft, Bell, BellOff, Moon, Shield, LogOut, Plus, Trash2, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,6 +8,7 @@ import { useTheme } from '@/components/ThemeProvider';
 import { db } from '@/lib/firebase';
 import { collection, query, onSnapshot, addDoc, deleteDoc, doc } from 'firebase/firestore';
 import { toast } from 'sonner';
+import { showLocalNotification } from '@/lib/notifications';
 
 interface EmergencyContact {
   id: string;
@@ -68,6 +69,15 @@ const SettingsPage: React.FC = () => {
     }
   };
 
+  const handleTestNotification = () => {
+    showLocalNotification({
+      title: 'Test Notification',
+      body: 'This is how your alerts will appear!',
+      type: 'general'
+    });
+    toast.success("Sent test popup!");
+  };
+
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
@@ -103,6 +113,25 @@ const SettingsPage: React.FC = () => {
                 onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
               />
             </div>
+          </div>
+        </section>
+
+        {/* Support & Grievances */}
+        <section>
+          <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">Support</h3>
+          <div className="glass-card divide-y divide-border">
+            <Link to="/grievance" className="p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-full bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400">
+                  <Shield className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-foreground">Grievance Redressal</h4>
+                  <p className="text-xs text-muted-foreground">Report bullying or issues</p>
+                </div>
+              </div>
+              <Plus className="w-4 h-4 text-muted-foreground rotate-45" />
+            </Link>
           </div>
         </section>
 
@@ -175,7 +204,12 @@ const SettingsPage: React.FC = () => {
 
         {/* Notifications */}
         <section>
-          <h3 className="text-sm font-medium text-muted-foreground mb-3">Notifications</h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-muted-foreground">Notifications</h3>
+            <button onClick={handleTestNotification} className="text-xs text-primary font-bold">
+              Test Popup
+            </button>
+          </div>
           <div className="glass-card divide-y divide-border">
             <div className="p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">

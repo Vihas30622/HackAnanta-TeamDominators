@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { UtensilsCrossed, Building2, Calendar, Users, LogOut, Shield, Bus, Bell } from 'lucide-react';
+import { UtensilsCrossed, Building2, Calendar, Users, LogOut, Shield, Bus, Bell, ShieldAlert } from 'lucide-react';
 
 const AdminDashboardPage: React.FC = () => {
     const { user, logout } = useAuth();
@@ -64,6 +64,15 @@ const AdminDashboardPage: React.FC = () => {
             bgColor: 'bg-purple-500/10',
             path: '/admin/resources',
             role: 'all'
+        },
+        {
+            title: 'Grievances',
+            description: 'Review student reports',
+            icon: ShieldAlert, // Make sure to import ShieldAlert
+            color: 'text-red-500',
+            bgColor: 'bg-red-500/10',
+            path: '/admin/grievances',
+            role: 'super_admin'
         },
         {
             title: 'Notifications',

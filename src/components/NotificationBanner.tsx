@@ -3,12 +3,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, BellOff, X, AlertTriangle, Calendar, UtensilsCrossed, Bus, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { 
-  requestNotificationPermission, 
+import {
+  requestNotificationPermission,
   getNotificationPermissionStatus,
   setupForegroundMessageListener,
   NotificationPayload,
-  NotificationType
+  NotificationType,
+  showLocalNotification
 } from '@/lib/notifications';
 import { toast } from 'sonner';
 
@@ -51,7 +52,11 @@ const NotificationBanner: React.FC = () => {
     if (permissionStatus === 'granted') {
       setupForegroundMessageListener((payload) => {
         const Icon = notificationIcons[payload.type];
-        
+
+        // Show System Popup (if granted)
+        showLocalNotification(payload);
+
+        // Show In-App Toast
         toast(payload.title, {
           description: payload.body,
           icon: <Icon className="w-5 h-5" />,
@@ -67,10 +72,10 @@ const NotificationBanner: React.FC = () => {
 
   const handleEnableNotifications = async () => {
     setIsRequesting(true);
-    
+
     try {
       const token = await requestNotificationPermission(user?.id);
-      
+
       if (token) {
         setPermissionStatus('granted');
         setShowBanner(false);
@@ -115,18 +120,18 @@ const NotificationBanner: React.FC = () => {
             >
               <X className="w-4 h-4" />
             </button>
-            
+
             <div className="flex items-start gap-3">
               <div className="p-2 rounded-xl bg-secondary">
                 <Bell className="w-5 h-5 text-secondary-foreground" />
               </div>
-              
+
               <div className="flex-1">
                 <h3 className="font-semibold text-foreground">Stay Updated</h3>
                 <p className="text-sm text-muted-foreground mt-0.5">
                   Get notified about emergencies, events, and your canteen orders.
                 </p>
-                
+
                 <div className="flex gap-2 mt-3">
                   <Button
                     onClick={handleEnableNotifications}
