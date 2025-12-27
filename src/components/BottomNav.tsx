@@ -1,8 +1,15 @@
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from '@/contexts/AuthContext';
 
 const BottomNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
+
+  // Explicitly hide if admin, just in case
+  if (user?.role === 'super_admin' || user?.role === 'food_admin' || user?.role === 'resource_admin' || user?.role === 'event_admin') {
+    return null;
+  }
 
   const isActive = (path: string) => {
     return location.pathname === path;

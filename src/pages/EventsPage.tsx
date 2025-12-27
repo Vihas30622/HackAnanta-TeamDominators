@@ -130,31 +130,7 @@ const EventsPage = () => {
         ))}
       </div>
 
-      {/* Hero Section (Featured) - Static for now or make fetchable */}
-      <div className="px-5 mt-2">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-primary text-xl font-bold tracking-tight">Featured Event</h3>
-          <span className="text-xs font-bold text-secondary bg-white/50 px-2 py-1 rounded-lg">🔥 Hot</span>
-        </div>
-        <div className="relative w-full aspect-[4/5] rounded-[32px] overflow-hidden shadow-glass group cursor-pointer active:scale-[0.99] transition-transform duration-300">
-          <div
-            className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-            style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1459749411177-0473ef716189?q=80&w=400&auto=format&fit=crop")' }}
-          ></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-          <div className="absolute top-4 right-4 glass-panel bg-white/90 rounded-2xl p-2.5 flex flex-col items-center shadow-lg w-[60px]">
-            <span className="text-xs font-bold text-secondary uppercase">Apr</span>
-            <span className="text-xl font-extrabold text-primary leading-none">12</span>
-          </div>
-          <div className="absolute bottom-0 left-0 w-full p-6">
-            <h2 className="text-white text-2xl font-bold leading-tight mb-2 drop-shadow-md">Spring Music Festival</h2>
-            <p className="text-white/90 text-sm mb-4 line-clamp-2">Join 500+ students this weekend for live bands, food trucks, and good vibes!</p>
-            <button className="flex-1 bg-primary hover:bg-[#2a5d94] text-white font-bold h-11 rounded-xl shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2 transition-colors w-full">
-              RSVP Now
-            </button>
-          </div>
-        </div>
-      </div>
+
 
       {/* Vertical List Section */}
       <div className="px-5 mt-8 space-y-4">

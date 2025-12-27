@@ -10,6 +10,9 @@ import BottomNav from "@/components/BottomNav";
 import SOSButton from "@/components/SOSButton";
 import InstallPrompt from "@/components/InstallPrompt";
 import NotificationBanner from "@/components/NotificationBanner";
+import RoleBasedHome from "@/components/RoleBasedHome";
+import StudentRoute from "@/components/StudentRoute";
+import AdminLayout from "@/components/AdminLayout";
 // Pages
 import LoginPage from "@/pages/LoginPage";
 import HomePage from "@/pages/HomePage";
@@ -28,6 +31,7 @@ import FoodAdminPage from "@/pages/admin/FoodAdminPage";
 import ResourceAdminPage from "@/pages/admin/ResourceAdminPage";
 import EventsAdminPage from "@/pages/admin/EventsAdminPage";
 import SuperAdminPage from "@/pages/admin/SuperAdminPage";
+import AdminDashboardPage from "@/pages/admin/AdminDashboardPage"; // Updated Super Admin Hub
 import RoleConfigPage from "@/pages/admin/RoleConfigPage";
 import PaymentPage from "@/pages/PaymentPage";
 import OrderSuccessPage from "@/pages/OrderSuccessPage";
@@ -121,9 +125,8 @@ const AppRoutes: React.FC = () => {
         path="/"
         element={
           <ProtectedRoute>
-            <AppLayout>
-              <HomePage />
-            </AppLayout>
+            {/* Dynamic landing based on role */}
+            <RoleBasedHome />
           </ProtectedRoute>
         }
       />
@@ -131,9 +134,11 @@ const AppRoutes: React.FC = () => {
         path="/transport"
         element={
           <ProtectedRoute>
-            <AppLayout>
-              <TransportPage />
-            </AppLayout>
+            <StudentRoute>
+              <AppLayout>
+                <TransportPage />
+              </AppLayout>
+            </StudentRoute>
           </ProtectedRoute>
         }
       />
@@ -141,9 +146,11 @@ const AppRoutes: React.FC = () => {
         path="/mental-health"
         element={
           <ProtectedRoute>
-            <AppLayout>
-              <MentalHealthPage />
-            </AppLayout>
+            <StudentRoute>
+              <AppLayout>
+                <MentalHealthPage />
+              </AppLayout>
+            </StudentRoute>
           </ProtectedRoute>
         }
       />
@@ -151,9 +158,11 @@ const AppRoutes: React.FC = () => {
         path="/resources"
         element={
           <ProtectedRoute>
-            <AppLayout>
-              <ResourcesPage />
-            </AppLayout>
+            <StudentRoute>
+              <AppLayout>
+                <ResourcesPage />
+              </AppLayout>
+            </StudentRoute>
           </ProtectedRoute>
         }
       />
@@ -161,9 +170,11 @@ const AppRoutes: React.FC = () => {
         path="/canteen"
         element={
           <ProtectedRoute>
-            <AppLayout>
-              <CanteenPage />
-            </AppLayout>
+            <StudentRoute>
+              <AppLayout>
+                <CanteenPage />
+              </AppLayout>
+            </StudentRoute>
           </ProtectedRoute>
         }
       />
@@ -171,9 +182,11 @@ const AppRoutes: React.FC = () => {
         path="/events"
         element={
           <ProtectedRoute>
-            <AppLayout>
-              <EventsPage />
-            </AppLayout>
+            <StudentRoute>
+              <AppLayout>
+                <EventsPage />
+              </AppLayout>
+            </StudentRoute>
           </ProtectedRoute>
         }
       />
@@ -181,9 +194,11 @@ const AppRoutes: React.FC = () => {
         path="/events/:id"
         element={
           <ProtectedRoute>
-            <AppLayout>
-              <EventDetailsPage />
-            </AppLayout>
+            <StudentRoute>
+              <AppLayout>
+                <EventDetailsPage />
+              </AppLayout>
+            </StudentRoute>
           </ProtectedRoute>
         }
       />
@@ -191,9 +206,11 @@ const AppRoutes: React.FC = () => {
         path="/grievance"
         element={
           <ProtectedRoute>
-            <AppLayout>
-              <GrievancePage />
-            </AppLayout>
+            <StudentRoute>
+              <AppLayout>
+                <GrievancePage />
+              </AppLayout>
+            </StudentRoute>
           </ProtectedRoute>
         }
       />
@@ -201,9 +218,11 @@ const AppRoutes: React.FC = () => {
         path="/emergency"
         element={
           <ProtectedRoute>
-            <AppLayout>
-              <EmergencyPage />
-            </AppLayout>
+            <StudentRoute>
+              <AppLayout>
+                <EmergencyPage />
+              </AppLayout>
+            </StudentRoute>
           </ProtectedRoute>
         }
       />
@@ -211,9 +230,11 @@ const AppRoutes: React.FC = () => {
         path="/more"
         element={
           <ProtectedRoute>
-            <AppLayout>
-              <MorePage />
-            </AppLayout>
+            <StudentRoute>
+              <AppLayout>
+                <MorePage />
+              </AppLayout>
+            </StudentRoute>
           </ProtectedRoute>
         }
       />
@@ -240,12 +261,22 @@ const AppRoutes: React.FC = () => {
 
       {/* Admin Routes */}
       <Route
+        path="/admin/dashboard"
+        element={
+          <AdminRoute allowedRoles={['super_admin']}>
+            <AdminLayout>
+              <AdminDashboardPage />
+            </AdminLayout>
+          </AdminRoute>
+        }
+      />
+      <Route
         path="/admin/food"
         element={
           <AdminRoute allowedRoles={['food_admin', 'super_admin']}>
-            <AppLayout>
+            <AdminLayout>
               <FoodAdminPage />
-            </AppLayout>
+            </AdminLayout>
           </AdminRoute>
         }
       />
@@ -253,9 +284,9 @@ const AppRoutes: React.FC = () => {
         path="/admin/resources"
         element={
           <AdminRoute allowedRoles={['resource_admin', 'super_admin']}>
-            <AppLayout>
+            <AdminLayout>
               <ResourceAdminPage />
-            </AppLayout>
+            </AdminLayout>
           </AdminRoute>
         }
       />
@@ -263,9 +294,9 @@ const AppRoutes: React.FC = () => {
         path="/admin/users"
         element={
           <AdminRoute allowedRoles={['super_admin']}>
-            <AppLayout>
+            <AdminLayout>
               <SuperAdminPage />
-            </AppLayout>
+            </AdminLayout>
           </AdminRoute>
         }
       />
@@ -273,9 +304,9 @@ const AppRoutes: React.FC = () => {
         path="/admin/events"
         element={
           <AdminRoute allowedRoles={['super_admin', 'event_admin']}>
-            <AppLayout>
+            <AdminLayout>
               <EventsAdminPage />
-            </AppLayout>
+            </AdminLayout>
           </AdminRoute>
         }
       />
