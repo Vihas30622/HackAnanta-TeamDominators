@@ -1,100 +1,151 @@
 
-import React, { useState } from 'react';
-import { Plus, Search, Building2, Trophy, Pencil, Trash2, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import {
+  Plus, Search, Building2, Trophy, Pencil, Trash2, X, History, Archive
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  collection, addDoc, updateDoc, deleteDoc, doc,
+  onSnapshot, query, orderBy, where, serverTimestamp
+} from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { logActivity } from '@/lib/resourceManager';
 
-// Equipment Interface
+// Types
 interface SportsEquipment {
   id: string;
   name: string;
   quantity: number;
+  description?: string;
+  isActive: boolean; // Soft Delete
+}
+
+interface Room {
+  id: string;
+  name: string;
+  type: string; // Classroom, Lab, Sports Room
+  available: boolean;
+  isActive: boolean; // Soft Delete
+}
+
+interface ActivityLog {
+  id: string;
+  resourceName: string;
+  action: string;
+  performedByName: string;
+  timestamp: any;
+  details: string;
 }
 
 const ResourceAdminPage = () => {
-  const [activeTab, setActiveTab] = useState<'rooms' | 'sports'>('sports');
+  const [activeTab, setActiveTab] = useState<'sports' | 'rooms' | 'logs'>('sports');
+  const { user } = useAuth();
 
-  // Sports State
+  // Data State
   const [equipment, setEquipment] = useState<SportsEquipment[]>([]);
-  const [isSportsDialogOpen, setIsSportsDialogOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<SportsEquipment | null>(null);
-  const [sportsFormData, setSportsFormData] = useState({ name: '', quantity: 0 });
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [logs, setLogs] = useState<ActivityLog[]>([]);
 
-  // Fetch Equipment
-  React.useEffect(() => {
+  // UI State
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<any | null>(null);
+  const [formData, setFormData] = useState<any>({});
+
+  // Real-time Fetching
+  useEffect(() => {
     if (!db) return;
 
-    const q = query(collection(db, 'sports_equipment'), orderBy('name'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setEquipment(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SportsEquipment)));
-    }, (err) => {
-      console.error("Error fetching sports equipment:", err);
-      toast.error("Could not fetch equipment list");
+    // Fetch Sports
+    const qSports = query(collection(db, 'sports_equipment'), orderBy('name'));
+    const unsubSports = onSnapshot(qSports, (snap) => {
+      setEquipment(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as SportsEquipment)));
     });
-    return () => unsubscribe();
+
+    // Fetch Rooms
+    const qRooms = query(collection(db, 'rooms'), orderBy('name'));
+    const unsubRooms = onSnapshot(qRooms, (snap) => {
+      setRooms(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Room)));
+    });
+
+    // Fetch Logs
+    const qLogs = query(collection(db, 'resource_logs'), orderBy('timestamp', 'desc')); // Limit needed in prod
+    const unsubLogs = onSnapshot(qLogs, (snap) => {
+      setLogs(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as ActivityLog)));
+    });
+
+    return () => { unsubSports(); unsubRooms(); unsubLogs(); };
   }, []);
 
-  const handleSportsSubmit = async (e: React.FormEvent) => {
+  // Handlers
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const collectionName = activeTab === 'sports' ? 'sports_equipment' : 'rooms';
+
     try {
       if (editingItem) {
-        await updateDoc(doc(db, 'sports_equipment', editingItem.id), sportsFormData);
+        await updateDoc(doc(db, collectionName, editingItem.id), {
+          ...formData,
+          updatedAt: serverTimestamp()
+        });
+        await logActivity(editingItem.id, formData.name, 'update', user?.id || 'admin', user?.name || 'Admin', `Updated details`);
         toast.success('Updated successfully');
       } else {
-        await addDoc(collection(db, 'sports_equipment'), sportsFormData);
+        const docRef = await addDoc(collection(db, collectionName), {
+          ...formData,
+          isActive: true, // Default active
+          createdAt: serverTimestamp()
+        });
+        await logActivity(docRef.id, formData.name, 'create', user?.id || 'admin', user?.name || 'Admin', `Created new ${activeTab === 'sports' ? 'item' : 'room'}`);
         toast.success('Added successfully');
       }
-      setIsSportsDialogOpen(false);
-      setSportsFormData({ name: '', quantity: 0 });
+      setIsDialogOpen(false);
       setEditingItem(null);
+      setFormData({});
     } catch (error) {
       console.error(error);
       toast.error('Operation failed');
     }
   };
 
-  const deleteEquipment = async (id: string) => {
-    if (confirm('Delete this item?')) {
-      try {
-        await deleteDoc(doc(db, 'sports_equipment', id));
-        toast.success('Deleted');
-      } catch (e) {
-        toast.error("Failed to delete");
-      }
-    }
-  };
-
-  const openEdit = (item: SportsEquipment) => {
-    setEditingItem(item);
-    setSportsFormData({ name: item.name, quantity: item.quantity });
-    setIsSportsDialogOpen(true);
-  }
-
-  // Initial Seed Function
-  const seedData = async () => {
-    const initial = [
-      { name: 'Chess Tables', quantity: 4 },
-      { name: 'Carrom Tables', quantity: 4 },
-      { name: 'Table Tennis', quantity: 4 },
-      { name: 'Volleyballs', quantity: 4 },
-      { name: 'Footballs', quantity: 2 },
-      { name: 'Cricket Bats', quantity: 2 },
-    ];
+  const softDelete = async (id: string, currentStatus: boolean, name: string) => {
+    const collectionName = activeTab === 'sports' ? 'sports_equipment' : 'rooms';
     try {
-      for (const item of initial) {
-        await addDoc(collection(db, 'sports_equipment'), item);
-      }
-      toast.success('Seeded initial data');
+      await updateDoc(doc(db, collectionName, id), { isActive: !currentStatus });
+      await logActivity(id, name, 'update', user?.id || 'admin', user?.name || 'Admin', `${currentStatus ? 'Deactivated' : 'Reactivated'} item`);
+      toast.success(currentStatus ? 'Marked as Inactive' : 'Restored');
     } catch (e) {
-      toast.error("Failed to seed data");
+      toast.error("Status update failed");
     }
   };
+
+  const manualStockAdjust = async (item: SportsEquipment, adjustment: number) => {
+    // Simpler adjustment
+    const newQty = item.quantity + adjustment;
+    if (newQty < 0) return;
+
+    try {
+      await updateDoc(doc(db, 'sports_equipment', item.id), { quantity: newQty });
+      await logActivity(item.id, item.name, 'restock', user?.id || 'admin', user?.name || 'Admin', `Adjusted quantity by ${adjustment}`);
+      toast.success("Stock updated");
+    } catch (e) { toast.error("Stock update failed"); }
+  };
+
+  const openModal = (item?: any) => {
+    if (item) {
+      setEditingItem(item);
+      setFormData(item);
+    } else {
+      setEditingItem(null);
+      setFormData(activeTab === 'sports' ? { name: '', quantity: 0 } : { name: '', type: 'Classroom', available: true });
+    }
+    setIsDialogOpen(true);
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background pb-20">
@@ -105,120 +156,147 @@ const ResourceAdminPage = () => {
           </Link>
           <div>
             <h1 className="text-xl font-bold">Resource Admin</h1>
-            <p className="text-sm text-muted-foreground">Manage inventory</p>
+            <p className="text-sm text-muted-foreground">Manage Inventory & Logs</p>
           </div>
         </div>
       </header>
 
       <div className="p-4 space-y-6">
         {/* Tabs */}
-        <div className="flex bg-muted/50 p-1 rounded-xl">
-          <button
-            onClick={() => setActiveTab('sports')}
-            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'sports' ? 'bg-background shadow text-primary' : 'text-muted-foreground hover:text-foreground'}`}
-          >
-            Sports Equipment
-          </button>
-          <button
-            onClick={() => setActiveTab('rooms')}
-            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'rooms' ? 'bg-background shadow text-primary' : 'text-muted-foreground hover:text-foreground'}`}
-          >
-            Rooms & Labs
-          </button>
+        <div className="flex bg-muted/50 p-1 rounded-xl overflow-x-auto">
+          {['sports', 'rooms', 'logs'].map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab as any)}
+              className={`flex-1 py-2 px-4 text-sm font-medium rounded-lg transition-all capitalize whitespace-nowrap ${activeTab === tab ? 'bg-background shadow text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              {tab === 'sports' ? 'Sports Equipment' : tab}
+            </button>
+          ))}
         </div>
 
-        {activeTab === 'sports' ? (
+        {activeTab === 'sports' && (
           <div className="space-y-4">
             <div className="flex justify-between items-center bg-card p-4 rounded-xl border border-border shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="bg-orange-100 p-2 rounded-lg text-orange-600">
-                  <Trophy className="w-5 h-5" />
-                </div>
-                <div>
-                  <h2 className="font-bold">Inventory</h2>
-                  <p className="text-xs text-muted-foreground">{equipment.length} Items</p>
-                </div>
-              </div>
-              <Button size="sm" onClick={() => { setEditingItem(null); setSportsFormData({ name: '', quantity: 0 }); setIsSportsDialogOpen(true); }}>
+              <h2 className="font-bold flex items-center gap-2"><Trophy className="w-5 h-5 text-orange-500" /> Inventory</h2>
+              <Button size="sm" onClick={() => openModal()}>
                 <Plus className="w-4 h-4 mr-1" /> Add
               </Button>
             </div>
-
-            {equipment.length === 0 && (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground text-sm mb-4">No equipment found.</p>
-                <Button variant="outline" size="sm" onClick={seedData}>Seed Default Data</Button>
-              </div>
-            )}
-
             <div className="grid gap-3">
               {equipment.map(item => (
-                <div key={item.id} className="flex items-center justify-between p-4 bg-card border border-border rounded-xl shadow-sm">
-                  <div>
-                    <h3 className="font-bold text-foreground">{item.name}</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${item.quantity > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                        {item.quantity > 0 ? 'In Stock' : 'Out of Stock'}
-                      </span>
-                      <span className="text-xs text-muted-foreground">Qty: {item.quantity}</span>
+                <div key={item.id} className={`flex flex-col p-4 bg-card border border-border rounded-xl shadow-sm ${!item.isActive ? 'opacity-60 grayscale' : ''}`}>
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h3 className="font-bold text-lg">{item.name}</h3>
+                      {!item.isActive && <span className="text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground">Inactive</span>}
+                    </div>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openModal(item)}><Pencil className="w-4 h-4" /></Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-red-500" onClick={() => softDelete(item.id, item.isActive ?? true, item.name)}><Archive className="w-4 h-4" /></Button>
                     </div>
                   </div>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(item)}>
-                      <Pencil className="w-4 h-4 text-primary" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/10" onClick={() => deleteEquipment(item.id)}>
-                      <Trash2 className="w-4 h-4 text-destructive" />
-                    </Button>
+                  <div className="flex items-center justify-between mt-2 bg-muted/30 p-2 rounded-lg">
+                    <span className="text-sm font-medium">Qty: {item.quantity}</span>
+                    <div className="flex items-center gap-2">
+                      <Button size="icon" variant="outline" className="h-6 w-6" onClick={() => manualStockAdjust(item, -1)}>-</Button>
+                      <Button size="icon" variant="outline" className="h-6 w-6" onClick={() => manualStockAdjust(item, 1)}>+</Button>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
-
-            <Dialog open={isSportsDialogOpen} onOpenChange={setIsSportsDialogOpen}>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>{editingItem ? 'Edit Item' : 'New Equipment'}</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleSportsSubmit} className="space-y-4 pt-2">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Item Name</label>
-                    <Input
-                      placeholder="e.g. Football"
-                      value={sportsFormData.name}
-                      onChange={e => setSportsFormData({ ...sportsFormData, name: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Quantity Available</label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={sportsFormData.quantity}
-                      onChange={e => setSportsFormData({ ...sportsFormData, quantity: Number(e.target.value) })}
-                      required
-                    />
-                  </div>
-                  <Button type="submit" className="w-full">
-                    {editingItem ? 'Save Changes' : 'Add Item'}
-                  </Button>
-                </form>
-              </DialogContent>
-            </Dialog>
           </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground space-y-4">
-            <div className="bg-muted p-4 rounded-full">
-              <Building2 className="w-8 h-8 opacity-50" />
+        )}
+
+        {activeTab === 'rooms' && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center bg-card p-4 rounded-xl border border-border shadow-sm">
+              <h2 className="font-bold flex items-center gap-2"><Building2 className="w-5 h-5 text-blue-500" /> Rooms</h2>
+              <Button size="sm" onClick={() => openModal()}>
+                <Plus className="w-4 h-4 mr-1" /> Add
+              </Button>
             </div>
-            <div className="text-center">
-              <h3 className="font-medium text-foreground">Rooms Management</h3>
-              <p className="text-sm">This module is coming soon.</p>
+            <div className="grid gap-3">
+              {rooms.map(room => (
+                <div key={room.id} className={`flex items-center justify-between p-4 bg-card border border-border rounded-xl shadow-sm ${!room.isActive ? 'opacity-60' : ''}`}>
+                  <div>
+                    <h3 className="font-bold">{room.name}</h3>
+                    <p className="text-xs text-muted-foreground">{room.type}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`px-3 py-1 rounded-full text-xs font-bold cursor-pointer transition-colors ${room.available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
+                      onClick={async () => {
+                        await updateDoc(doc(db, 'rooms', room.id), { available: !room.available });
+                        logActivity(room.id, room.name, 'update', user?.id || 'admin', user?.name || 'Admin', `Toggled availability to ${!room.available}`);
+                      }}
+                    >
+                      {room.available ? 'Free' : 'Occupied'}
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => openModal(room)}><Pencil className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => softDelete(room.id, room.isActive ?? true, room.name)}><Archive className="w-4 h-4" /></Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'logs' && (
+          <div className="space-y-4">
+            <h2 className="font-bold flex items-center gap-2 px-1"><History className="w-5 h-5" /> Activity History</h2>
+            <div className="space-y-2">
+              {logs.map(log => (
+                <div key={log.id} className="bg-card p-3 rounded-xl border border-border text-sm flex flex-col gap-1">
+                  <div className="flex justify-between font-medium">
+                    <span className="text-primary">{log.performedByName}</span>
+                    <span className="text-muted-foreground text-xs">
+                      {log.timestamp?.seconds ? new Date(log.timestamp.seconds * 1000).toLocaleString() : 'Just now'}
+                    </span>
+                  </div>
+                  <p className="text-foreground">
+                    <span className="capitalize font-bold text-xs bg-muted px-1.5 py-0.5 rounded mr-2">{log.action}</span>
+                    {log.resourceName}
+                  </p>
+                  {log.details && <p className="text-xs text-muted-foreground italic">{log.details}</p>}
+                </div>
+              ))}
             </div>
           </div>
         )}
       </div>
+
+      {/* Dialog for Add/Edit */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingItem ? 'Edit' : 'Add'} {activeTab === 'sports' ? 'Equipment' : 'Room'}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Name</label>
+              <Input value={formData.name || ''} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
+            </div>
+
+            {activeTab === 'sports' && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Total Quantity</label>
+                <Input type="number" value={formData.quantity || 0} onChange={e => setFormData({ ...formData, quantity: Number(e.target.value) })} required />
+              </div>
+            )}
+
+            {activeTab === 'rooms' && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Type</label>
+                <Input value={formData.type || ''} onChange={e => setFormData({ ...formData, type: e.target.value })} placeholder="Classroom, Lab..." required />
+              </div>
+            )}
+
+            <Button type="submit" className="w-full">Save</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

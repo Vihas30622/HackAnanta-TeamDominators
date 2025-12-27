@@ -117,8 +117,8 @@ const FreeRoomFinder = ({ onBack }: { onBack: () => void }) => {
                                 key={floor.id}
                                 onClick={() => setSelectedFloor(floor.id)}
                                 className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${selectedFloor === floor.id
-                                        ? 'bg-primary text-primary-foreground'
-                                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
                                     }`}
                             >
                                 {floor.label}
@@ -155,25 +155,7 @@ const FreeRoomFinder = ({ onBack }: { onBack: () => void }) => {
                         )}
                     </div>
 
-                    {occupiedRooms.length > 0 && (
-                        <div>
-                            <h3 className="text-sm font-bold text-muted-foreground mb-3 uppercase flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-red-500" />
-                                Occupied Rooms ({occupiedRooms.length})
-                            </h3>
-                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                                {occupiedRooms.map(room => (
-                                    <div
-                                        key={room}
-                                        className="bg-red-500/5 border border-red-500/10 text-red-700/50 rounded-xl p-3 flex flex-col items-center justify-center gap-1 opacity-70 grayscale-[0.5]"
-                                    >
-                                        <span className="text-lg font-bold">{room}</span>
-                                        <span className="text-[10px] uppercase font-bold opacity-70">Busy</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+                    {/* Occupied Rooms Hidden */}
                 </div>
             </div>
         </div>
