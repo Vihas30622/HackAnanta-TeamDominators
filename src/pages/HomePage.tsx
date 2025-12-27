@@ -68,6 +68,8 @@ const HomePage = () => {
     });
   };
 
+  const locationRef = useRef<{ lat: number, lng: number } | null>(null);
+
   const triggerSOSActions = () => {
     console.log("SOS ACTIONS TRIGGERED");
     const SOS_NUMBER = "7075933919";
@@ -76,9 +78,12 @@ const HomePage = () => {
     // ALERT: Must be synchronous to avoid Popup Blockers!
     if (emergencyContacts.length > 0) {
       const contact = emergencyContacts[0];
-      // We can't wait for location, so we send a generic help message immediately.
-      // The exact location will be logged to Admin Dashboard via Firestore.
-      const message = `HELP! I am in danger. Tracking my location via Campus Connect App.`;
+
+      // Use cached location if available
+      const loc = locationRef.current;
+      const locString = loc ? `Location: https://www.google.com/maps?q=${loc.lat},${loc.lng}` : 'Location: Unavailable';
+
+      const message = `HELP! I am in danger. ${locString}`;
       const phone = contact.phone.replace(/\D/g, '');
       const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 
@@ -111,8 +116,11 @@ const HomePage = () => {
       }
     };
 
-    if (navigator.geolocation) {
-      toast.info("SOS Sent! logging location...");
+    // Attempt logging (re-using cached location if valid, or fetch fresh)
+    const loc = locationRef.current;
+    if (loc) {
+      logSOS(loc.lat, loc.lng);
+    } else if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           logSOS(position.coords.latitude, position.coords.longitude);
@@ -128,9 +136,25 @@ const HomePage = () => {
     }
   };
 
-  // Countdown Logic
+  // Countdown Logic + Pre-Fetch Location
   useEffect(() => {
     let interval: NodeJS.Timeout;
+
+    // Start Pre-fetching location immediately when SOS activates
+    if (isSosActive && countdown === 5) { // Only trigger once at start
+      if (navigator.geolocation) {
+        console.log("Pre-fetching location...");
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            locationRef.current = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            console.log("Location pre-fetched:", locationRef.current);
+          },
+          (err) => console.error("Pre-fetch failed", err),
+          { timeout: 4000, enableHighAccuracy: true }
+        );
+      }
+    }
+
     if (isSosActive && countdown > 0) {
       interval = setInterval(() => {
         setCountdown(prev => prev - 1);
@@ -139,6 +163,7 @@ const HomePage = () => {
       triggerSOSActions();
       setIsSosActive(false);
       setCountdown(5); // Reset
+      locationRef.current = null; // Clear cache
     }
     return () => clearInterval(interval);
   }, [isSosActive, countdown]);
