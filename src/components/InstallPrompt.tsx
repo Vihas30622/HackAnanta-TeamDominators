@@ -76,21 +76,21 @@ const InstallPrompt: React.FC = () => {
           >
             <X className="w-4 h-4" />
           </button>
-          
+
           <div className="flex items-start gap-3">
             <div className="p-2 rounded-xl gradient-primary">
               <Download className="w-5 h-5 text-primary-foreground" />
             </div>
-            
+
             <div className="flex-1">
-              <h3 className="font-semibold text-foreground">Install CampusOS</h3>
+              <h3 className="font-semibold text-foreground">Install Campus360</h3>
               <p className="text-sm text-muted-foreground mt-0.5">
-                {isIOS 
+                {isIOS
                   ? 'Tap Share, then "Add to Home Screen"'
                   : 'Get quick access from your home screen'
                 }
               </p>
-              
+
               {!isIOS && deferredPrompt && (
                 <Button
                   onClick={handleInstall}
@@ -100,7 +100,7 @@ const InstallPrompt: React.FC = () => {
                   Install App
                 </Button>
               )}
-              
+
               {isIOS && (
                 <div className="mt-3 flex items-center gap-2 text-sm text-secondary">
                   <Share2 className="w-4 h-4" />

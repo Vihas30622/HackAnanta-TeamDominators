@@ -47,7 +47,7 @@ const LoginPage = () => {
           </div>
           {/* HeadlineText Component Adapted */}
           <h1 className="text-primary tracking-tight text-[32px] font-extrabold leading-tight text-center drop-shadow-sm">
-            Campus OS
+            Campus360
           </h1>
           {/* TitleText Component Adapted */}
           <h2 className="text-secondary text-lg font-bold leading-tight tracking-[-0.015em] text-center pt-1">

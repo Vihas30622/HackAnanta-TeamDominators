@@ -1,6 +1,6 @@
 {
-  "name": "CampusOS - Your Digital Campus",
-  "short_name": "CampusOS",
+  "name": "Campus360 - Your Digital Campus",
+  "short_name": "Campus360",
   "description": "Your one-stop digital operating system for college campuses",
   "start_url": "/",
   "display": "standalone",
@@ -58,7 +58,11 @@
       "purpose": "maskable any"
     }
   ],
-  "categories": ["education", "utilities", "lifestyle"],
+  "categories": [
+    "education",
+    "utilities",
+    "lifestyle"
+  ],
   "screenshots": [],
   "prefer_related_applications": false
 }

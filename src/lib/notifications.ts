@@ -22,7 +22,7 @@ export const requestNotificationPermission = async (userId?: string): Promise<st
 
     // Request permission
     const permission = await Notification.requestPermission();
-    
+
     if (permission !== 'granted') {
       console.log('Notification permission denied');
       return null;
@@ -53,12 +53,12 @@ export const requestNotificationPermission = async (userId?: string): Promise<st
 
     if (token) {
       console.log('FCM Token:', token);
-      
+
       // Save token to Firestore if user is logged in
       if (userId && db) {
         await saveTokenToFirestore(userId, token);
       }
-      
+
       return token;
     }
 
@@ -82,7 +82,7 @@ const saveTokenToFirestore = async (userId: string, token: string) => {
       platform: 'web',
       userAgent: navigator.userAgent,
     }, { merge: true });
-    
+
     console.log('FCM token saved to Firestore');
   } catch (error) {
     console.error('Error saving FCM token:', error);
@@ -98,9 +98,9 @@ export const setupForegroundMessageListener = async (
 
   return onMessage(messaging, (payload) => {
     console.log('Foreground message received:', payload);
-    
+
     const notification: NotificationPayload = {
-      title: payload.notification?.title || 'CampusOS',
+      title: payload.notification?.title || 'Campus360',
       body: payload.notification?.body || '',
       type: (payload.data?.type as NotificationType) || 'general',
       data: payload.data,

@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Heart, Building2, MessageSquareWarning, Settings, LogOut, 
+import {
+  Heart, Building2, MessageSquareWarning, Settings, LogOut,
   ChevronRight, User, UtensilsCrossed, Shield, Bell, Crown
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -167,11 +167,10 @@ const MorePage: React.FC = () => {
                   setUserRole(role.value);
                   toast.success(`Switched to ${role.label}`);
                 }}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                  user?.role === role.value
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${user?.role === role.value
                     ? 'bg-secondary text-secondary-foreground'
                     : 'bg-muted text-muted-foreground'
-                }`}
+                  }`}
               >
                 {role.label}
               </button>
@@ -194,7 +193,7 @@ const MorePage: React.FC = () => {
             </div>
             <ChevronRight className="w-5 h-5 text-muted-foreground" />
           </Link>
-          
+
           <Link to="/settings" className="module-card flex items-center gap-3">
             <div className="p-2.5 rounded-xl bg-muted">
               <Settings className="w-5 h-5 text-muted-foreground" />
@@ -205,7 +204,7 @@ const MorePage: React.FC = () => {
             </div>
             <ChevronRight className="w-5 h-5 text-muted-foreground" />
           </Link>
-          
+
           <button
             onClick={handleLogout}
             className="w-full module-card flex items-center gap-3 text-left"
@@ -223,7 +222,7 @@ const MorePage: React.FC = () => {
 
       {/* Version */}
       <div className="px-4 text-center">
-        <p className="text-xs text-muted-foreground">CampusOS v1.0.0</p>
+        <p className="text-xs text-muted-foreground">Campus360 v1.0.0</p>
       </div>
     </div>
   );

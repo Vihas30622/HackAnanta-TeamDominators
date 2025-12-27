@@ -84,7 +84,7 @@ const EventsPage = () => {
             <div className="absolute bottom-0 right-0 size-3 bg-green-400 rounded-full border-2 border-white"></div>
           </div>
           <div className="flex flex-col">
-            <span className="text-xs font-semibold text-secondary uppercase tracking-wider">Campus OS</span>
+            <span className="text-xs font-semibold text-secondary uppercase tracking-wider">Campus360</span>
             <h1 className="text-primary text-lg font-bold leading-none">What's Happening</h1>
           </div>
         </div>
