@@ -9,7 +9,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db, googleProvider, isFirebaseConfigured } from '@/lib/firebase';
 import { toast } from 'sonner';
 
-export type UserRole = 'student' | 'food_admin' | 'resource_admin' | 'super_admin' | 'event_admin';
+export type UserRole = 'student' | 'food_admin' | 'resource_admin' | 'super_admin' | 'event_admin' | 'transport_admin';
 
 interface User {
   id: string;

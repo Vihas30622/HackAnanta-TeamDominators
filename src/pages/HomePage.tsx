@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { db } from "@/lib/firebase";
-import { collection, query, limit, onSnapshot } from "firebase/firestore";
+import { collection, query, limit, onSnapshot, addDoc } from "firebase/firestore";
 import { toast } from "sonner";
 
 const HomePage = () => {
@@ -98,13 +98,47 @@ const HomePage = () => {
     if (navigator.geolocation) {
       toast.info("Acquiring location for SOS...");
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           const { latitude, longitude } = position.coords;
+
+          // Log to Firestore
+          if (db && user) {
+            try {
+              await addDoc(collection(db, 'sos_alerts'), {
+                userId: user.id,
+                userName: user.name,
+                userEmail: user.email,
+                phone: emergencyContacts[0]?.phone || 'Unknown',
+                location: { lat: latitude, lng: longitude },
+                status: 'active',
+                timestamp: new Date().toISOString() // Use ISO string for broader compatibility if serverTimestamp has issues in client-side arrays
+              });
+            } catch (e) {
+              console.error("Failed to log SOS", e);
+            }
+          }
+
           launchWhatsApp(latitude, longitude);
           makeCall();
         },
-        (error) => {
+        async (error) => {
           console.error("Location error", error);
+
+          // Log to Firestore even without location
+          if (db && user) {
+            try {
+              await addDoc(collection(db, 'sos_alerts'), {
+                userId: user.id,
+                userName: user.name,
+                userEmail: user.email,
+                phone: emergencyContacts[0]?.phone || 'Unknown',
+                location: null,
+                status: 'active',
+                timestamp: new Date().toISOString()
+              });
+            } catch (e) { console.error("Failed to log SOS", e); }
+          }
+
           launchWhatsApp(); // Send without location
           makeCall();
         },
@@ -205,22 +239,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Quick Actions Strip */}
-      <div className="w-full overflow-x-auto no-scrollbar pl-6 py-4 flex gap-3 snap-x">
-        {[
-          { icon: 'badge', label: 'My ID', action: () => { } },
-          { icon: 'directions_bus', label: 'Bus Pass', action: () => { } },
-        ].map((item, idx) => (
-          <button
-            key={idx}
-            onClick={item.action}
-            className="glass shrink-0 h-11 pl-4 pr-5 rounded-full flex items-center gap-2 text-sm font-bold text-foreground whitespace-nowrap snap-start active:bg-white/60 transition shadow-sm"
-          >
-            <span className="material-symbols-outlined text-primary text-[20px]">{item.icon}</span>
-            {item.label}
-          </button>
-        ))}
-      </div>
+
 
       {/* Admin Quick Access */}
       {(user?.role === 'super_admin' || user?.role === 'food_admin' || user?.role === 'resource_admin' || user?.role === 'transport_admin') && (

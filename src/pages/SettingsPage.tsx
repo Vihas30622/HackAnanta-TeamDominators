@@ -97,24 +97,7 @@ const SettingsPage: React.FC = () => {
       <div className="px-4 space-y-6">
 
         {/* Appearance */}
-        <section>
-          <h3 className="text-sm font-medium text-muted-foreground mb-3">Appearance</h3>
-          <div className="glass-card divide-y divide-border">
-            <div className="p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Moon className="w-5 h-5 text-muted-foreground" />
-                <div>
-                  <h4 className="font-medium text-foreground">Dark Mode</h4>
-                  <p className="text-xs text-muted-foreground">Adjust display theme</p>
-                </div>
-              </div>
-              <Switch
-                checked={theme === 'dark'}
-                onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
-              />
-            </div>
-          </div>
-        </section>
+        {/* Appearance Section Removed - Dark Mode Disabled */}
 
         {/* Support & Grievances */}
         <section>
