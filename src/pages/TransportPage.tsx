@@ -15,6 +15,8 @@ const TransportPage = () => {
   const [loading, setLoading] = useState(false);
   const [routeData, setRouteData] = useState<TransportRoute | null>(null);
 
+  const TRACKING_URL = import.meta.env.VITE_COLLEGE_BUS_MAP_URL || 'https://tinyurl.com/2p8rkuh9';
+
   const handleGetRoute = async () => {
     if (!destination.trim()) {
       toast.error("Please enter a destination");
@@ -106,16 +108,27 @@ const TransportPage = () => {
           </div>
         </div>
 
-        <div className="h-[70vh] w-full rounded-2xl overflow-hidden border border-border shadow-sm bg-muted relative">
-          <iframe
-            src="https://tinyurl.com/2p8rkuh9"
-            className="w-full h-full border-0"
-            title="Live Bus Tracking"
-          />
-          {/* Overlay header inside map area if needed, or just keep it clean */}
-          <div className="absolute top-4 left-4 right-4 bg-white/90 backdrop-blur-md p-3 rounded-xl shadow-lg border border-border/50">
-            <p className="text-xs font-bold text-center text-primary uppercase tracking-wider">Live Bus Location</p>
+        <div className="h-[70vh] w-full rounded-2xl overflow-hidden border border-border shadow-sm bg-muted relative flex flex-col items-center justify-center p-6 text-center gap-4">
+          <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center animate-pulse">
+            <MapPin className="w-10 h-10 text-primary" />
           </div>
+          <div>
+            <h3 className="text-xl font-bold text-foreground">Live Tracking Dashboard</h3>
+            <p className="text-muted-foreground max-w-xs mx-auto mt-2 text-sm">
+              View the real-time location of the college bus on the secure Fleetx dashboard.
+            </p>
+          </div>
+
+          <Button
+            onClick={() => window.open('https://tinyurl.com/2p8rkuh9', '_blank')}
+            className="gradient-primary text-white font-bold h-12 px-8 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all active:scale-95 mt-2"
+          >
+            Start Live Tracking
+          </Button>
+
+          <p className="text-xs text-muted-foreground mt-4">
+            Powered by Fleetx.io
+          </p>
         </div>
       </div>
     </div>
