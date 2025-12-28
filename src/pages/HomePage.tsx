@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { db } from "@/lib/firebase";
 import { collection, query, limit, onSnapshot, addDoc } from "firebase/firestore";
 import { toast } from "sonner";
+import SOSPlugin from "@/plugins/sos-plugin";
 
 const HomePage = () => {
   const { user, isAuthenticated } = useAuth();
@@ -72,31 +73,22 @@ const HomePage = () => {
 
   const triggerSOSActions = () => {
     console.log("SOS ACTIONS TRIGGERED");
-    const SOS_NUMBER = "8919611804";
 
-    // Immediate action: WhatsApp + Call
-    // ALERT: Must be synchronous to avoid Popup Blockers!
-    if (emergencyContacts.length > 0) {
-      const contact = emergencyContacts[0];
+    // Immediate Action: Native SOS Logic (SMS + Direct Call)
+    const SOS_NUMBER = "+918919611804"; // International Format
 
-      // Use cached location if available
-      const loc = locationRef.current;
-      const locString = loc ? `Location: https://www.google.com/maps?q=${loc.lat},${loc.lng}` : 'Location: Unavailable';
-
-      const message = `HELP! I am in danger. ${locString}`;
-      const phone = contact.phone.replace(/\D/g, '');
-      const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-
-      // Open immediately (User Action Trusted)
-      window.open(waUrl, '_blank');
-    } else {
-      toast.error("No emergency contacts for WhatsApp!");
-    }
-
-    // Call after small delay
-    setTimeout(() => {
+    SOSPlugin.triggerSOS({
+      phone: SOS_NUMBER,
+      contacts: emergencyContacts.map(c => c.phone) || [SOS_NUMBER],
+      message: "URGENT: I am in danger. Please help!"
+    }).then(() => {
+      toast.success("SOS Alert Sent", { description: "Calling emergency services..." });
+    }).catch(err => {
+      console.error("SOS Failed", err);
+      toast.error("SOS Trigger Failed", { description: "Please make the call manually if needed." });
+      // Fallback only if native fails really hard
       window.location.href = `tel:${SOS_NUMBER}`;
-    }, 1000);
+    });
 
     // Background: Log Location to Firestore
     const logSOS = async (lat?: number, lng?: number) => {

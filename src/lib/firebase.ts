@@ -23,7 +23,7 @@ const app = isConfigured ? initializeApp(firebaseConfig) : null;
 export const auth = app ? getAuth(app) : null;
 
 if (auth) {
-  setPersistence(auth, indexedDBLocalPersistence).catch(e => console.error("Persistence", e));
+  setPersistence(auth, browserLocalPersistence).catch(e => console.error("Persistence", e));
 }
 export const db = app ? getFirestore(app) : null;
 export const googleProvider = new GoogleAuthProvider();

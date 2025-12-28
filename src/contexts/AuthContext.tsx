@@ -1,8 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import {
   User as FirebaseUser,
   signInWithPopup,
   signInWithRedirect,
+  signInWithCredential, // Added for Native Auth
+  GoogleAuthProvider,   // Added for Native Auth
   getRedirectResult,
   signOut,
   onAuthStateChanged
@@ -62,7 +66,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }, 5000); // 5s safety timeout check
 
     return () => clearTimeout(timer);
-  });
+  }, []); // Added missing dependency array
 
   // Fetch or create user profile in Firestore
   const fetchOrCreateUserProfile = async (fbUser: FirebaseUser): Promise<User> => {
@@ -158,6 +162,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(false);
     });
 
+    // Initialize Google Auth Plugin
+    if (Capacitor.isNativePlatform()) {
+      GoogleAuth.initialize();
+    }
+
     return () => unsubscribe();
   }, []);
 
@@ -183,12 +192,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     try {
       setIsLoading(true);
-      // Revert to Popup: Persistence fix should resolve previous stability issues
-      await signInWithPopup(auth, googleProvider);
+
+      if (Capacitor.isNativePlatform()) {
+        const googleUser = await GoogleAuth.signIn();
+        const idToken = googleUser.authentication.idToken;
+        const credential = GoogleAuthProvider.credential(idToken);
+        await signInWithCredential(auth, credential);
+      } else {
+        // Web Fallback
+        await signInWithPopup(auth, googleProvider);
+      }
+
       toast.success('Signed in successfully!');
     } catch (error: any) {
       console.error('Login error:', error);
-      toast.error(`Login Failed: ${error.code} - ${error.message}`);
+      toast.error(`Login Failed: ${error.code || error.message}`);
       setIsLoading(false);
     }
   };

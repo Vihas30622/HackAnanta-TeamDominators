@@ -49,50 +49,31 @@ const SOSButton: React.FC<SOSButtonProps> = ({ onActivate }) => {
     setIsPressed(false);
     setCountdown(null);
 
-    // Get location
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          const locationLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
-
+    // Trigger Native SOS
+    try {
+      import('@/plugins/sos-plugin').then(({ default: SOSPlugin }) => {
+        SOSPlugin.triggerSOS({
+          phone: "+918919611804",
+          contacts: ["+918919611804", "+919876543210"],
+          message: "URGENT: A danger has been reported by the user. Please take immediate action."
+        }).then(() => {
           toast.success('SOS Activated!', {
-            description: `Calling emergency contacts... Location sent.`,
+            description: `Calling emergency services and sending location alerts...`,
             duration: 5000,
           });
-
-          // Call Emergency Number
-          const phoneNumber = "8919611804";
-          window.location.href = `tel:${phoneNumber}`;
-
-          // Send Email (using mailto for immediate client-side action without backend)
-          const email = "2420030622@klh.edu.in";
-          const subject = "SOS ALERT - DANGER REPORTED";
-          const body = `URGENT: A danger has been reported by the user.\n\nLocation: ${locationLink}\n\nPlease take immediate action.`;
-
-          // Open mail client in new window to n ot block phone call
-          window.open(`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
-        },
-        () => {
-          toast.success('SOS Activated!', {
-            description: 'Calling emergency contacts...',
-            duration: 5000,
-          });
-
-          const phoneNumber = "8919611804";
-          window.location.href = `tel:${phoneNumber}`;
-
-          // Send Email fallback (no location)
-          const email = "2420030622@klh.edu.in";
-          const subject = "SOS ALERT - DANGER REPORTED";
-          const body = `URGENT: A danger has been reported by the user.\n\nLocation Unavailable.\n\nPlease take immediate action.`;
-          window.open(`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
-        }
-      );
+        }).catch((err) => {
+          console.error("SOS Error:", err);
+          toast.error(`SOS Error: ${err.message || 'Unknown error'}`, { description: "Please ensure permissions are granted." });
+        });
+      });
+    } catch (e) {
+      console.error(e);
     }
 
     onActivate?.();
   };
+
+
 
   return (
     <div className="fixed bottom-24 right-4 z-50">
